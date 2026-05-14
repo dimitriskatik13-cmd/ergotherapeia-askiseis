@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <title>ΣΥΝΟΙΔΑ · Εργοθεραπευτικές Ασκήσεις</title>
+  <meta name="description" content="Βιβλιοθήκη εκτυπώσιμων εργοθεραπευτικών ασκήσεων εμπνευσμένων από τη μεθοδολογία Teodorescu. Για επαγγελματίες της ΣΥΝΟΙΔΑ." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="css/base.css" />
+  <link rel="stylesheet" href="css/components.css" />
+  <link rel="stylesheet" href="css/views.css" />
+  <link rel="stylesheet" href="css/print.css" media="all" />
+</head>
+<body>
+  <div id="app" class="app-shell">
+    <header class="app-header no-print">
+      <div class="brand-strip brand-strip--top" aria-hidden="true"></div>
+      <div class="app-header__inner">
+        <a class="app-brand" href="#/" aria-label="Αρχική">
+          <span class="app-brand__mark">ΣΥΝΟΙΔΑ</span>
+          <span class="app-brand__sub">Εργοθεραπευτικές Ασκήσεις</span>
+        </a>
+        <nav class="app-nav">
+          <a href="#/" data-nav="home">Αρχική</a>
+          <a href="#/favorites" data-nav="favorites">Αγαπημένα</a>
+          <a href="#/about" data-nav="about">Σχετικά</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="view" class="app-view" role="main">
+      <!-- Δυναμικό περιεχόμενο: εδώ φορτώνεται το current view -->
+    </main>
+
+    <footer class="app-footer no-print">
+      <div class="app-footer__inner">
+        <span>ΣΥΝΟΙΔΑ · Κέντρα Ειδικών Θεραπειών</span>
+        <span>Αρτέμιδα · Σπάτα · Νέα Μάκρη · Μαραθώνας</span>
+        <span><a href="mailto:info@synoida.gr">info@synoida.gr</a> · <a href="https://www.synoida.gr" target="_blank" rel="noopener">www.synoida.gr</a></span>
+      </div>
+      <div class="brand-strip brand-strip--bottom" aria-hidden="true"></div>
+    </footer>
+  </div>
+
+  <script type="module" src="js/main.js"></script>
+</body>
+</html>

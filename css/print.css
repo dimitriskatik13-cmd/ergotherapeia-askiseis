@@ -1,0 +1,210 @@
+/* ========== Print sheet layout (A4) ========== */
+.print-sheet {
+  width: 210mm;
+  min-height: 297mm;
+  margin: 0 auto;
+  background: #fff;
+  color: #1c1f24;
+  display: flex;
+  flex-direction: column;
+  font-family: var(--font);
+  position: relative;
+  box-shadow: var(--shadow-2);
+}
+.print-sheet--landscape {
+  width: 297mm;
+  min-height: 210mm;
+}
+
+.print-sheet__strip {
+  height: 5mm;
+  flex: 0 0 auto;
+  background:
+    linear-gradient(to right,
+      var(--green)  0%,  var(--green)  20%,
+      var(--red)    20%, var(--red)    40%,
+      var(--blue)   40%, var(--blue)   60%,
+      var(--orange) 60%, var(--orange) 80%,
+      var(--gray)   80%, var(--gray)   100%);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+.print-sheet__header {
+  padding: 8mm 14mm 4mm;
+  display: flex;
+  flex-direction: column;
+  gap: 3mm;
+}
+.print-sheet__title-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 6mm;
+}
+.print-sheet__title {
+  font-size: 16pt;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+  color: #1c1f24;
+  margin: 0;
+}
+.print-sheet__level {
+  display: inline-flex;
+  align-items: center;
+  gap: 2mm;
+  font-size: 9pt;
+  color: #58595B;
+  font-weight: 600;
+}
+.print-sheet__level-dots { display: inline-flex; gap: 1mm; }
+.print-sheet__level-dots span {
+  width: 2.5mm; height: 2.5mm; border-radius: 50%;
+  background: #d6d8dc;
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+.print-sheet__level-dots span.is-on { background: #58595B; }
+
+.print-sheet__goal {
+  font-size: 10pt;
+  color: #4a4f57;
+}
+.print-sheet__goal strong { color: #1c1f24; }
+
+.print-sheet__id-row {
+  display: flex;
+  gap: 8mm;
+  font-size: 10pt;
+  color: #4a4f57;
+  border-top: 0.3mm solid #e6e8ec;
+  padding-top: 3mm;
+}
+.print-sheet__id-row span { display: inline-flex; align-items: baseline; gap: 2mm; }
+.print-sheet__id-row em {
+  display: inline-block;
+  min-width: 50mm;
+  border-bottom: 0.3mm solid #58595B;
+  font-style: normal;
+  height: 5mm;
+}
+
+.print-sheet__instruction {
+  margin: 0 14mm;
+  padding: 4mm 6mm;
+  background: rgba(141, 198, 63, 0.12);
+  border-left: 1mm solid var(--green);
+  border-radius: 2mm;
+  font-size: 13pt;
+  font-weight: 600;
+  color: #1c1f24;
+  line-height: 1.35;
+  -webkit-print-color-adjust: exact; print-color-adjust: exact;
+}
+.print-sheet__instruction::before {
+  content: "✏  ";
+  color: var(--green);
+  margin-right: 2mm;
+}
+
+.print-sheet__body {
+  flex: 1 1 auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6mm 14mm;
+  min-height: 0;
+}
+.print-sheet__body svg {
+  width: 100%;
+  max-height: 180mm;
+  height: auto;
+  display: block;
+}
+.print-sheet--landscape .print-sheet__body svg {
+  max-height: 120mm;
+}
+
+.print-sheet__therapist {
+  margin: 0 14mm 3mm;
+  padding-top: 3mm;
+  border-top: 0.3mm solid #e6e8ec;
+  font-size: 8.5pt;
+  color: #4a4f57;
+  line-height: 1.45;
+}
+.print-sheet__therapist strong { color: #1c1f24; font-weight: 700; }
+.print-sheet__inspiration {
+  margin: 1mm 14mm 0;
+  font-size: 7.5pt;
+  color: #8a8f98;
+  font-style: italic;
+}
+
+.print-sheet__footer {
+  padding: 3mm 14mm 4mm;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 8pt;
+  color: #58595B;
+}
+.print-sheet__footer strong { color: #1c1f24; font-weight: 700; letter-spacing: 0.04em; }
+
+/* ========== Print toolbar (screen-only) ========== */
+.print-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-3);
+  padding: var(--s-3) var(--s-4);
+  background: var(--bg-alt);
+  border-bottom: 1px solid var(--line);
+  margin-bottom: var(--s-5);
+}
+.print-toolbar__hint {
+  font-size: 0.82rem;
+  color: var(--ink-3);
+  max-width: 560px;
+}
+.print-stage {
+  background: var(--bg-alt);
+  padding: var(--s-5) var(--s-4) var(--s-7);
+  min-height: 100vh;
+}
+
+/* ========== @media print ========== */
+@media print {
+  @page { size: A4; margin: 0; }
+  @page landscape { size: A4 landscape; margin: 0; }
+
+  html, body {
+    background: #fff !important;
+    margin: 0 !important;
+    padding: 0 !important;
+  }
+
+  body * { visibility: hidden !important; }
+  .print-sheet, .print-sheet * { visibility: visible !important; }
+
+  .no-print, .print-toolbar { display: none !important; }
+  .print-stage { padding: 0 !important; background: #fff !important; }
+
+  .print-sheet {
+    position: absolute;
+    left: 0;
+    top: 0;
+    margin: 0;
+    box-shadow: none !important;
+    page-break-inside: avoid;
+    page-break-after: avoid;
+  }
+  .print-sheet--landscape { page: landscape; }
+
+  *, *::before, *::after {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

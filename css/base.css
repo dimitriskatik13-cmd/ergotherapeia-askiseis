@@ -1,0 +1,212 @@
+:root {
+  /* ΣΥΝΟΙΔΑ palette */
+  --green: #8DC63F;
+  --red:   #ED1C24;
+  --blue:  #00AEEF;
+  --orange:#F7941D;
+  --gray:  #58595B;
+
+  --green-soft:  rgba(141, 198, 63, 0.12);
+  --red-soft:    rgba(237, 28, 36, 0.10);
+  --blue-soft:   rgba(0, 174, 239, 0.10);
+  --orange-soft: rgba(247, 148, 29, 0.12);
+  --gray-soft:   rgba(88, 89, 91, 0.10);
+
+  --bg:     #ffffff;
+  --bg-alt: #f7f8fa;
+  --ink:    #1c1f24;
+  --ink-2:  #4a4f57;
+  --ink-3:  #8a8f98;
+  --line:   #e6e8ec;
+
+  --radius-sm: 8px;
+  --radius:    14px;
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+
+  --s-1: 4px;
+  --s-2: 8px;
+  --s-3: 12px;
+  --s-4: 16px;
+  --s-5: 24px;
+  --s-6: 32px;
+  --s-7: 48px;
+  --s-8: 64px;
+
+  --font: "Inter", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+
+  --shadow-1: 0 1px 2px rgba(20,22,28,0.04), 0 2px 8px rgba(20,22,28,0.04);
+  --shadow-2: 0 6px 24px rgba(20,22,28,0.08);
+
+  --max-w: 1240px;
+}
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: var(--font);
+  font-size: 16px;
+  line-height: 1.45;
+  color: var(--ink);
+  background: var(--bg);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+body {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+button {
+  font: inherit;
+  cursor: pointer;
+  border: 0;
+  background: transparent;
+  color: inherit;
+}
+
+h1, h2, h3, h4 {
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+h1 { font-size: clamp(1.6rem, 2.6vw, 2.2rem); }
+h2 { font-size: clamp(1.25rem, 2vw, 1.6rem); }
+h3 { font-size: 1.125rem; }
+
+p { margin: 0; }
+
+/* App shell */
+.app-shell {
+  display: flex;
+  flex-direction: column;
+  min-height: 100dvh;
+  background: var(--bg);
+}
+
+.app-view {
+  flex: 1;
+  width: 100%;
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: var(--s-6) var(--s-5) var(--s-7);
+}
+
+@media (max-width: 720px) {
+  .app-view { padding: var(--s-5) var(--s-4) var(--s-6); }
+}
+
+/* Brand strip (top/bottom signature) */
+.brand-strip {
+  display: flex;
+  width: 100%;
+  height: 6px;
+}
+.brand-strip::before,
+.brand-strip::after,
+.brand-strip > * { content: ""; flex: 1; height: 100%; }
+.brand-strip {
+  background:
+    linear-gradient(to right,
+      var(--green)  0%,  var(--green)  20%,
+      var(--red)    20%, var(--red)    40%,
+      var(--blue)   40%, var(--blue)   60%,
+      var(--orange) 60%, var(--orange) 80%,
+      var(--gray)   80%, var(--gray)   100%);
+  -webkit-print-color-adjust: exact;
+  print-color-adjust: exact;
+}
+
+/* Header */
+.app-header {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  background: var(--bg);
+  border-bottom: 1px solid var(--line);
+}
+.app-header__inner {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: var(--s-4) var(--s-5);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s-5);
+}
+.app-brand {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.05;
+}
+.app-brand__mark {
+  font-weight: 800;
+  font-size: 1.05rem;
+  letter-spacing: 0.04em;
+  color: var(--gray);
+}
+.app-brand__sub {
+  font-size: 0.78rem;
+  font-weight: 500;
+  color: var(--ink-3);
+  margin-top: 2px;
+}
+.app-nav {
+  display: flex;
+  gap: var(--s-4);
+  font-size: 0.92rem;
+  font-weight: 500;
+}
+.app-nav a {
+  padding: var(--s-2) var(--s-3);
+  border-radius: var(--radius-pill);
+  color: var(--ink-2);
+  transition: background .15s ease, color .15s ease;
+}
+.app-nav a:hover {
+  background: var(--bg-alt);
+  color: var(--ink);
+}
+.app-nav a.is-active {
+  background: var(--gray-soft);
+  color: var(--ink);
+}
+
+/* Footer */
+.app-footer { margin-top: auto; }
+.app-footer__inner {
+  max-width: var(--max-w);
+  margin: 0 auto;
+  padding: var(--s-5);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s-3) var(--s-5);
+  justify-content: space-between;
+  font-size: 0.85rem;
+  color: var(--ink-3);
+}
+.app-footer__inner a { color: var(--gray); }
+.app-footer__inner a:hover { color: var(--ink); }
+
+/* Utility */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0,0,0,0);
+  white-space: nowrap;
+  border: 0;
+}
