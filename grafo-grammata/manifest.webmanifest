@@ -1,0 +1,17 @@
+{
+  "name": "ΣΥΝΟΙΔΑ · Γράφω Γράμματα",
+  "short_name": "ΣΥΝΟΙΔΑ",
+  "description": "Κλινικό εργαλείο εξάσκησης γραφής ελληνικών γραμμάτων για tablet — σωστή φορά & σειρά γραμμών, φώνημα στην ολοκλήρωση.",
+  "lang": "el",
+  "dir": "ltr",
+  "start_url": ".",
+  "scope": ".",
+  "display": "standalone",
+  "orientation": "any",
+  "background_color": "#F7F6F8",
+  "theme_color": "#F7F6F8",
+  "icons": [
+    { "src": "brand_assets/logo/synoida-icon-pwa.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "brand_assets/logo/synoida-icon-pwa.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+  ]
+}

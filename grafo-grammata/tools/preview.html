@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="el">
+<head>
+<meta charset="UTF-8" />
+<title>Preview — strokes</title>
+<style>
+  body { margin: 0; background: #F7F6F8; font-family: sans-serif; }
+  .grid { display: grid; grid-template-columns: repeat(6, 1fr); gap: 8px; padding: 12px; }
+  .cell { background: #fff; border-radius: 16px; box-shadow: 0 2px 8px rgba(0,0,0,.06); position: relative; }
+  .cell canvas { display: block; width: 100%; height: auto; }
+  .cap { position: absolute; top: 6px; left: 10px; font-size: 13px; color: #58595B; font-weight: 700; }
+</style>
+</head>
+<body>
+<div class="grid" id="grid"></div>
+<script type="module">
+import { LETTERS_LOWER, LETTERS_UPPER } from '../js/letters/index.js';
+import { renderGuide, fieldMap } from '../js/engine/guide.js';
+const SET = new URLSearchParams(location.search).get('c') === 'upper' ? LETTERS_UPPER : LETTERS_LOWER;
+
+const SIZE = 220;
+const grid = document.getElementById('grid');
+
+function cell(letter) {
+  const div = document.createElement('div');
+  div.className = 'cell';
+  const cap = document.createElement('div');
+  cap.className = 'cap';
+  cap.textContent = `${letter.char}  /${letter.phonemeKey}/  ${letter.strokes.length}σ`;
+  div.appendChild(cap);
+  const cv = document.createElement('canvas');
+  const dpr = 2;
+  cv.width = SIZE * dpr; cv.height = SIZE * dpr;
+  cv.style.width = SIZE + 'px'; cv.style.height = SIZE + 'px';
+  const ctx = cv.getContext('2d');
+  ctx.scale(dpr, dpr);
+  const map = fieldMap(SIZE, SIZE, 0.10);
+  renderGuide(ctx, SIZE, SIZE, letter, {
+    map, lines: 'double',
+    force: { guide: true, numbers: true, arrows: true },
+    arrowOpts: { fractions: [0.35, 0.7], size: 0.03 },
+  });
+  div.appendChild(cv);
+  return div;
+}
+
+SET.forEach((l) => grid.appendChild(cell(l)));
+window.__ready = true;
+</script>
+</body>
+</html>

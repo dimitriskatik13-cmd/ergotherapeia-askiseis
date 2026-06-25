@@ -1,0 +1,54 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   Base — reset, body, soft organic backdrop (η «υπογραφή» ΣΥΝΟΙΔΑ)
+   ───────────────────────────────────────────────────────────────────────────── */
+*, *::before, *::after { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+}
+
+body {
+  font-family: var(--font-ui);
+  color: var(--grey);
+  background: var(--bg);
+  overflow: hidden;                 /* καμία κύλιση — κλινικό περιβάλλον */
+  overscroll-behavior: none;
+  -webkit-user-select: none;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+}
+
+button { font-family: inherit; color: inherit; cursor: pointer; }
+
+.app {
+  position: relative;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+/* Soft organic backdrop — μεγάλα απαλά «μπαλόνια» σε παστέλ brand tints */
+.backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  overflow: hidden;
+}
+.blob {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(8px);
+}
+.blob--blue   { width: 46vmin; height: 46vmin; left: -10vmin;  top: -8vmin;   background: var(--blue);   opacity: 0.12; }
+.blob--green  { width: 38vmin; height: 38vmin; right: -8vmin;  top: -10vmin;  background: var(--green);  opacity: 0.13; }
+.blob--orange { width: 50vmin; height: 50vmin; right: -12vmin; bottom: -16vmin;background: var(--orange); opacity: 0.10; }
+.blob--red    { width: 30vmin; height: 30vmin; left: -6vmin;   bottom: -10vmin;background: var(--red);    opacity: 0.08; }
+
+@media (prefers-reduced-motion: no-preference) {
+  .hint { transition: opacity .2s ease, transform .2s ease; }
+}

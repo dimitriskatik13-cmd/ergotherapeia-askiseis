@@ -1,0 +1,165 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// Guide renderer — ζωγραφίζει τον ΟΔΗΓΟ ενός γράμματος σε canvas 2D:
+//   αχνό γράμμα-οδηγό · αριθμημένα σημεία έναρξης ① · βέλη κατεύθυνσης ·
+//   γραμμές τετραδίου (απλή / διπλή με διακεκομμένη μέση).
+//
+// Χρησιμοποιείται ΚΑΙ από την εφαρμογή ΚΑΙ από την οθόνη «Έγκριση φοράς».
+// Όλες οι συντεταγμένες των γραμμάτων είναι normalized 0..1 (τετράγωνο πεδίο).
+// ─────────────────────────────────────────────────────────────────────────────
+import { PALETTE, STROKE_COLORS, tint } from '../palette.js';
+import { pointAtFraction } from '../letters/_dsl.js';
+
+/**
+ * Αντιστοίχιση normalized πεδίου [0,1]² σε pixels του canvas (τετράγωνο,
+ * κεντραρισμένο, με padding). Επιστρέφει συναρτήσεις tx/ty και την κλίμακα.
+ */
+export function fieldMap(w, h, padRatio = 0.08) {
+  const pad = Math.min(w, h) * padRatio;
+  const side = Math.min(w, h) - 2 * pad;
+  const ox = (w - side) / 2;
+  const oy = (h - side) / 2;
+  return {
+    side,
+    tx: (x) => ox + x * side,
+    ty: (y) => oy + y * side,
+    s: (v) => v * side,
+  };
+}
+
+/** Επίπεδο βοήθειας → σημαίες εμφάνισης (Ενότητα 3 του spec). */
+export function helpFlags(level) {
+  switch (level) {
+    case 1: return { guide: true, numbers: true, arrows: true };
+    case 2: return { guide: true, numbers: true, arrows: false };
+    case 3: return { guide: false, numbers: true, arrows: false };
+    case 4: return { guide: false, numbers: false, arrows: false };
+    default: return { guide: true, numbers: true, arrows: true };
+  }
+}
+
+/** Γραμμές τετραδίου. type: 'none' | 'single' | 'double'. */
+export function drawNotebookLines(ctx, w, h, map, zones, type = 'double') {
+  if (type === 'none') return;
+  const x0 = map.tx(0.06), x1 = map.tx(0.94);
+  const lineAt = (y, dashed = false, strong = false) => {
+    ctx.save();
+    ctx.beginPath();
+    ctx.lineWidth = Math.max(1, map.s(strong ? 0.006 : 0.004));
+    ctx.strokeStyle = tint(PALETTE.green, strong ? 0.45 : 0.30);
+    ctx.setLineDash(dashed ? [map.s(0.02), map.s(0.018)] : []);
+    ctx.moveTo(x0, map.ty(y));
+    ctx.lineTo(x1, map.ty(y));
+    ctx.stroke();
+    ctx.restore();
+  };
+  if (type === 'single') {
+    lineAt(zones.baseline, false, true);
+    return;
+  }
+  // double: πάνω γραμμή, διακεκομμένη μέση, κάτω (baseline)
+  lineAt(zones.xHeightTop, false, false);
+  lineAt(zones.baseline, false, true);
+  lineAt((zones.xHeightTop + zones.baseline) / 2, true, false);
+}
+
+/** Αχνό γράμμα-οδηγό (παχιά απαλή διαδρομή). */
+export function drawGuideLetter(ctx, letter, map, { color = PALETTE.grey, alpha = 0.18, width = 0.085 } = {}) {
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  ctx.strokeStyle = tint(color, alpha);
+  ctx.lineWidth = map.s(width);
+  for (const st of letter.strokes) {
+    ctx.beginPath();
+    st.points.forEach((p, i) => {
+      const X = map.tx(p.x), Y = map.ty(p.y);
+      if (i === 0) ctx.moveTo(X, Y); else ctx.lineTo(X, Y);
+    });
+    ctx.stroke();
+  }
+  ctx.restore();
+}
+
+/** Αριθμημένα σημεία έναρξης ①②③ στην αρχή κάθε stroke. */
+export function drawStartNumbers(ctx, letter, map, { radius = 0.045, fontRatio = 0.052 } = {}) {
+  ctx.save();
+  ctx.textAlign = 'center';
+  ctx.textBaseline = 'middle';
+  const r = map.s(radius);
+  // De-collision: αν δύο σημεία έναρξης πέφτουν σχεδόν στο ίδιο σημείο,
+  // απομακρύνουμε ελαφρώς το badge ώστε να φαίνονται και τα δύο.
+  const placed = [];
+  const spots = letter.strokes.map((st) => ({ x: map.tx(st.points[0].x), y: map.ty(st.points[0].y) }));
+  spots.forEach((sp) => {
+    let { x, y } = sp;
+    for (let guard = 0; guard < 8; guard++) {
+      const hit = placed.find((q) => Math.hypot(q.x - x, q.y - y) < r * 2.1);
+      if (!hit) break;
+      const dx = x - hit.x, dy = y - hit.y;
+      const d = Math.hypot(dx, dy) || 1;
+      x = hit.x + (dx / d) * r * 2.15;
+      y = hit.y + (dy / d) * r * 2.15 + r * 0.2;
+    }
+    placed.push({ x, y });
+  });
+  letter.strokes.forEach((st, idx) => {
+    const X = placed[idx].x, Y = placed[idx].y;
+    const col = STROKE_COLORS[idx % STROKE_COLORS.length];
+    ctx.beginPath();
+    ctx.fillStyle = '#fff';
+    ctx.arc(X, Y, r, 0, Math.PI * 2);
+    ctx.fill();
+    ctx.lineWidth = map.s(0.008);
+    ctx.strokeStyle = col;
+    ctx.stroke();
+    ctx.fillStyle = col;
+    ctx.font = `700 ${map.s(fontRatio)}px Inter, sans-serif`;
+    ctx.fillText(st.startLabel, X, Y + map.s(0.002));
+  });
+  ctx.restore();
+}
+
+/** Βέλη κατεύθυνσης κατά μήκος των strokes. */
+export function drawArrows(ctx, letter, map, { fractions = [0.55], size = 0.035 } = {}) {
+  ctx.save();
+  letter.strokes.forEach((st, idx) => {
+    const col = STROKE_COLORS[idx % STROKE_COLORS.length];
+    for (const f of fractions) {
+      const { x, y, angle } = pointAtFraction(st.points, f);
+      drawArrowHead(ctx, map.tx(x), map.ty(y), angle, map.s(size), col);
+    }
+  });
+  ctx.restore();
+}
+
+function drawArrowHead(ctx, x, y, angle, size, color) {
+  ctx.save();
+  ctx.translate(x, y);
+  ctx.rotate(angle);
+  ctx.fillStyle = color;
+  ctx.beginPath();
+  ctx.moveTo(size, 0);
+  ctx.lineTo(-size * 0.6, size * 0.66);
+  ctx.lineTo(-size * 0.6, -size * 0.66);
+  ctx.closePath();
+  ctx.fill();
+  ctx.restore();
+}
+
+/**
+ * Ολοκληρωμένη απόδοση οδηγού με βάση επίπεδο βοήθειας ή ρητές σημαίες.
+ * opts: { level, lines, zones, force:{guide,numbers,arrows}, guideColor, guideAlpha }
+ */
+export function renderGuide(ctx, w, h, letter, opts = {}) {
+  const map = opts.map || fieldMap(w, h, opts.padRatio);
+  const flags = opts.force || helpFlags(opts.level ?? 1);
+  if (opts.lines && opts.lines !== 'none') {
+    drawNotebookLines(ctx, w, h, map, letter.zones, opts.lines);
+  }
+  if (flags.guide) {
+    drawGuideLetter(ctx, letter, map, { color: opts.guideColor, alpha: opts.guideAlpha });
+  }
+  if (flags.arrows) drawArrows(ctx, letter, map, opts.arrowOpts || {});
+  if (flags.numbers) drawStartNumbers(ctx, letter, map, opts.numberOpts || {});
+  return map;
+}

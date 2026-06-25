@@ -1,0 +1,61 @@
+/* ─────────────────────────────────────────────────────────────────────────────
+   ΣΥΝΟΙΔΑ · «Γράφω Γράμματα» — Design tokens
+   Παλέτα ΜΟΝΟ brand · γραμματοσειρές self-hosted (offline) · spacing scale.
+   ───────────────────────────────────────────────────────────────────────────── */
+
+/* Self-hosted variable fonts — ΟΧΙ Google Fonts CDN (σπάει το offline) */
+@font-face {
+  font-family: 'Comfortaa';
+  src: url('../brand_assets/fonts/Comfortaa-Variable.ttf') format('truetype-variations'),
+       url('../brand_assets/fonts/Comfortaa-Variable.ttf') format('truetype');
+  font-weight: 300 700;
+  font-style: normal;
+  font-display: swap;
+}
+@font-face {
+  font-family: 'Inter';
+  src: url('../brand_assets/fonts/Inter-Variable.ttf') format('truetype-variations'),
+       url('../brand_assets/fonts/Inter-Variable.ttf') format('truetype');
+  font-weight: 100 900;
+  font-style: normal;
+  font-display: swap;
+}
+
+:root {
+  /* Παλέτα ΣΥΝΟΙΔΑ — ΜΟΝΟ αυτά τα χρώματα */
+  --green:  #8DC63F;
+  --red:    #ED1C24;
+  --blue:   #00AEEF;
+  --orange: #F7941D;
+  --grey:   #58595B;
+  --bg:     #F7F6F8;   /* soft off-white φόντο */
+  --paper:  #FFFFFF;   /* καμβάς γραφής */
+  --bg-alt: #F5F5F5;
+
+  /* Απαλά tints (5–15%) για backgrounds/accents */
+  --green-08: rgba(141, 198, 63, 0.10);
+  --blue-08:  rgba(0, 174, 239, 0.10);
+  --orange-08:rgba(247, 148, 29, 0.10);
+  --red-08:   rgba(237, 28, 36, 0.10);
+  --grey-12:  rgba(88, 89, 91, 0.12);
+
+  /* Τυπογραφία */
+  --font-display: 'Comfortaa', system-ui, sans-serif;
+  --font-ui: 'Inter', system-ui, -apple-system, sans-serif;
+
+  /* Spacing scale (digital) — ΜΟΝΟ αυτά */
+  --s1: 8px;  --s2: 12px; --s3: 16px; --s4: 24px;
+  --s5: 32px; --s6: 48px; --s7: 64px; --s8: 96px;
+
+  /* Radii */
+  --r-card: 24px;
+  --r-soft: 16px;
+  --r-pill: 999px;
+
+  /* Σκιές */
+  --shadow-card: 0 10px 30px rgba(88, 89, 91, 0.10);
+  --shadow-soft: 0 4px 14px rgba(88, 89, 91, 0.08);
+
+  /* Touch targets */
+  --tap: 56px;
+}
