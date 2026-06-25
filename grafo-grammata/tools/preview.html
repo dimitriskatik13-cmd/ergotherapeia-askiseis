@@ -16,10 +16,14 @@
 <script type="module">
 import { LETTERS_LOWER, LETTERS_UPPER } from '../js/letters/index.js';
 import { renderGuide, fieldMap } from '../js/engine/guide.js';
-const SET = new URLSearchParams(location.search).get('c') === 'upper' ? LETTERS_UPPER : LETTERS_LOWER;
+const Q = new URLSearchParams(location.search);
+let SET = Q.get('c') === 'upper' ? LETTERS_UPPER : LETTERS_LOWER;
+const ONLY = Q.get('only');
+if (ONLY) { const want = [...ONLY]; SET = SET.filter((l) => want.includes(l.char)); }
 
-const SIZE = 220;
+const SIZE = ONLY ? 420 : 220;
 const grid = document.getElementById('grid');
+if (ONLY) grid.style.gridTemplateColumns = `repeat(${Math.min(SET.length, 3)}, 1fr)`;
 
 function cell(letter) {
   const div = document.createElement('div');
