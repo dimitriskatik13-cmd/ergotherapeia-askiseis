@@ -124,6 +124,7 @@ export class Session {
     this.pencil.begin(p);
     if (this.tracer) {
       const h = this.tracer.beginTouch(p);
+      this.tracer.feed([p]);           // το σημείο εκκίνησης μετράει στην κάλυψη
       if (h && h.msg) this.feedback.hint(h.msg);
     }
   }
@@ -131,10 +132,9 @@ export class Session {
   _move(ps) {
     if (!this.pencil) return;
     this.pencil.extend(ps);
-    if (this.tracer) {
-      const r = this.tracer.feed(ps);
-      if (r && r.type === 'complete') this._completeInternal();
-    }
+    // Συγκεντρώνουμε κάλυψη ΧΩΡΙΣ να ολοκληρώνουμε εδώ — η ολοκλήρωση κρίνεται
+    // μόνο στο σήκωμα του χεριού (ώστε να μην παίζει το φώνημα ενώ ακόμα γράφει).
+    if (this.tracer) this.tracer.feed(ps);
   }
 
   _up(p) {
@@ -142,9 +142,10 @@ export class Session {
     this.pencil.end();
     this.pencil = null;
     if (this.tracer && !this.completed) {
+      this.tracer.feed([p]);           // το τελικό σημείο μετράει στην κάλυψη
       const r = this.tracer.endTouch();
       if (r && r.type === 'complete') this._completeInternal();
-      else if (r && r.type === 'partial') this.feedback.hint(r.msg);
+      else if (r && r.msg) this.feedback.hint(r.msg);
     }
   }
 

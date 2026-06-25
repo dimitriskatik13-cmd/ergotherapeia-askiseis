@@ -73,7 +73,14 @@ export class Phonemes {
         const src = this.ctx.createBufferSource();
         src.buffer = buf;
         const gain = this.ctx.createGain();
-        gain.gain.value = 1.0;
+        // Απαλό «φάκελος» έντασης: μικρό attack & release ώστε να μην ακούγεται απότομο.
+        const t0 = this.ctx.currentTime;
+        const dur = buf.duration;
+        const atk = 0.025, rel = Math.min(0.06, dur * 0.4);
+        gain.gain.setValueAtTime(0.0001, t0);
+        gain.gain.linearRampToValueAtTime(1.0, t0 + atk);
+        gain.gain.setValueAtTime(1.0, t0 + Math.max(atk, dur - rel));
+        gain.gain.linearRampToValueAtTime(0.0001, t0 + dur);
         src.connect(gain).connect(this.ctx.destination);
         src.start(0);
       } else {

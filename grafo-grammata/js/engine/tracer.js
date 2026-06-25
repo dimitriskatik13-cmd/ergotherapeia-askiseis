@@ -40,7 +40,7 @@ export class Tracer {
   setStrictness(s) {
     s = Math.max(0, Math.min(1, s));
     this.tol = 0.115 - 0.070 * s;       // χαλαρό 0.115 → αυστηρό 0.045
-    this.coverNeed = 0.55 + 0.30 * s;   // χαλαρό 0.55 → αυστηρό 0.85
+    this.coverNeed = 0.66 + 0.28 * s;   // χαλαρό 0.66 → αυστηρό 0.94 (πιο ακριβές)
   }
 
   reset() {
@@ -95,27 +95,28 @@ export class Tracer {
       if (dist <= this.tol) {
         cov[idx] = true;
         // απαλό «πάχος» κάλυψης: μάρκαρε και τους άμεσους γείτονες
-        if (idx > 0 && dist <= this.tol * 0.8) cov[idx - 1] = true;
-        if (idx < cov.length - 1 && dist <= this.tol * 0.8) cov[idx + 1] = true;
+        if (idx > 0 && dist <= this.tol * 0.85) cov[idx - 1] = true;
+        if (idx < cov.length - 1 && dist <= this.tol * 0.85) cov[idx + 1] = true;
       }
     }
-    return this._maybeAdvance();
-  }
-
-  /** Τέλος πινελιάς — αξιολόγηση & ενδεχόμενη υπόδειξη. */
-  endTouch() {
-    if (this.done) return null;
-    const adv = this._maybeAdvance();
-    if (adv) return adv;
-    const cv = this.coverage(this.active);
-    if (cv > 0.12 && cv < this.coverNeed) {
-      return { type: 'partial', msg: 'Ακολούθησε όλη τη γραμμή 👍' };
-    }
+    // ΠΟΤΕ ολοκλήρωση κατά τη γραφή — μόνο όταν σηκωθεί το χέρι (endTouch).
     return null;
   }
 
-  _maybeAdvance() {
-    if (this.coverage(this.active) >= this.coverNeed) {
+  /** Ένα stroke θεωρείται «τελειωμένο» μόνο αν: επαρκής κάλυψη ΚΑΙ ξεκίνησε
+   *  από την αρχή ① ΚΑΙ έφτασε ΩΣ ΤΟ ΤΕΛΟΣ της γραμμής. */
+  _strokeDone(i) {
+    const cov = this.covered[i];
+    const n = cov.length;
+    const startOk = cov[0] || cov[1] || cov[2];
+    const endOk = cov[n - 1] || cov[n - 2] || cov[n - 3];
+    return startOk && endOk && this.coverage(i) >= this.coverNeed;
+  }
+
+  /** Τέλος πινελιάς (σήκωμα χεριού) — ΕΔΩ μόνο κρίνεται η ολοκλήρωση. */
+  endTouch() {
+    if (this.done) return null;
+    if (this._strokeDone(this.active)) {
       if (this.active >= this.samples.length - 1) {
         this.done = true;
         return { type: 'complete' };
@@ -123,6 +124,15 @@ export class Tracer {
       this.active += 1;
       this.touchStartIdx = null;
       return { type: 'stroke-done', next: this.active };
+    }
+    // Απαλές, μη τιμωρητικές υποδείξεις
+    const cov = this.covered[this.active];
+    const cv = this.coverage(this.active);
+    if (cv >= this.coverNeed && !(cov[0] || cov[1])) {
+      return { type: 'wrongstart', msg: 'Ξεκίνα από το ① 👆' };
+    }
+    if (cv > 0.18) {
+      return { type: 'partial', msg: 'Ακολούθησε όλη τη γραμμή ως το τέλος 👍' };
     }
     return null;
   }
