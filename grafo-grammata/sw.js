@@ -2,7 +2,7 @@
    Service worker — offline PWA. Προφορτώνει το app shell + γραμματοσειρές +
    φωνήματα ώστε να δουλεύει χωρίς ίντερνετ στο γραφείο.
    ───────────────────────────────────────────────────────────────────────────── */
-const VERSION = 'grafo-v2';
+const VERSION = 'grafo-v3';
 const CACHE = `synoida-${VERSION}`;
 
 const PHONEMES = ['a','e','i','o','v','gh','dh','z','th','k','l','m','n','ks','p','r','s','t','f','kh','ps'];

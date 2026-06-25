@@ -154,25 +154,25 @@ export class Session {
     if (this.completed) return;
     this.completed = true;
     this.input.disable();
-    this._celebrateAndSpeak();
+    this._celebrate();          // ΧΩΡΙΣ ήχο — το φώνημα παίζει ΜΟΝΟ με το κουμπί 🔊
     if (this.onComplete) this.onComplete(this.letter);
   }
 
-  /** Κουμπί «Ολοκλήρωση» (✓) του θεραπευτή — δουλεύει σε ΟΛΑ τα modes. */
+  /** Κουμπί «Ολοκλήρωση» (✓) του θεραπευτή — διακριτική επιβράβευση ΧΩΡΙΣ ήχο. */
   completeByTherapist() {
     if (this.completed) return;
     this.completed = true;
     this.input.disable();
     this._stopAnim();
-    this._celebrateAndSpeak();
+    this._celebrate();
     if (this.onComplete) this.onComplete(this.letter);
   }
 
-  _celebrateAndSpeak() {
-    this.phonemes.play(this.letter.phonemeAudio);
+  _celebrate() {
     this.feedback.celebrate(this.letter, this.accentFor(this.letter));
   }
 
+  /** Το ΜΟΝΟ σημείο που παίζει φώνημα: το κουμπί 🔊 Φώνημα του θεραπευτή. */
   repeatPhoneme() { if (this.letter) this.phonemes.play(this.letter.phonemeAudio); }
 
   clearInk() {
