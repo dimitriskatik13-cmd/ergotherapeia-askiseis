@@ -102,7 +102,7 @@ export class Session {
       map: surf.map,
       level: this._effectiveLevel(),
       lines: this.settings.lines,
-      arrowOpts: { fractions: [0.32, 0.7], size: 0.028 },
+      arrowOpts: { size: 0.044 },
     });
   }
 

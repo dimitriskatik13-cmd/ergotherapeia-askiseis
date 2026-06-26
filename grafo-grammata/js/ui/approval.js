@@ -27,7 +27,7 @@ export function buildApproval(store) {
     renderGuide(ctx, SIZE, SIZE, letter, {
       map, lines: 'double',
       force: { guide: true, numbers: true, arrows: true },
-      arrowOpts: { fractions: [0.32, 0.7], size: 0.03 },
+      arrowOpts: { size: 0.04 },
     });
     const cap = el('div', { class: 'approval__cap' }, [
       el('strong', {}, [letter.char]),

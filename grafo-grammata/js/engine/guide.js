@@ -7,7 +7,7 @@
 // Όλες οι συντεταγμένες των γραμμάτων είναι normalized 0..1 (τετράγωνο πεδίο).
 // ─────────────────────────────────────────────────────────────────────────────
 import { PALETTE, STROKE_COLORS, tint } from '../palette.js';
-import { pointAtFraction } from '../letters/_dsl.js';
+import { pointAtFraction, pathLength } from '../letters/_dsl.js';
 
 /**
  * Αντιστοίχιση normalized πεδίου [0,1]² σε pixels του canvas (τετράγωνο,
@@ -119,28 +119,51 @@ export function drawStartNumbers(ctx, letter, map, { radius = 0.045, fontRatio =
   ctx.restore();
 }
 
-/** Βέλη κατεύθυνσης κατά μήκος των strokes. */
-export function drawArrows(ctx, letter, map, { fractions = [0.55], size = 0.035 } = {}) {
+/**
+ * Βέλη κατεύθυνσης κατά μήκος των strokes — μεγάλα, με «κοντάρι» (σαν →) και
+ * πλήθος ανάλογο του μήκους (μικρή γραμμή → 1 βέλος, μεγάλη → έως 3).
+ */
+export function drawArrows(ctx, letter, map, { size = 0.04, spacing = 0.22 } = {}) {
   ctx.save();
   letter.strokes.forEach((st, idx) => {
     const col = STROKE_COLORS[idx % STROKE_COLORS.length];
-    for (const f of fractions) {
+    const L = pathLength(st.points);
+    const n = Math.max(1, Math.min(3, Math.round(L / spacing)));
+    for (let i = 0; i < n; i++) {
+      const f = (i + 1) / (n + 1);
       const { x, y, angle } = pointAtFraction(st.points, f);
-      drawArrowHead(ctx, map.tx(x), map.ty(y), angle, map.s(size), col);
+      drawArrow(ctx, map.tx(x), map.ty(y), angle, map.s(size), col);
     }
   });
   ctx.restore();
 }
 
-function drawArrowHead(ctx, x, y, angle, size, color) {
+function drawArrow(ctx, x, y, angle, size, color) {
   ctx.save();
   ctx.translate(x, y);
   ctx.rotate(angle);
+  ctx.lineCap = 'round';
+  ctx.lineJoin = 'round';
+  // λευκό «φωτοστέφανο» για αντίθεση πάνω στον αχνό οδηγό
+  ctx.strokeStyle = '#fff';
+  ctx.lineWidth = size * 1.05;
+  ctx.beginPath();
+  ctx.moveTo(-size * 1.45, 0);
+  ctx.lineTo(size * 0.15, 0);
+  ctx.stroke();
+  // κοντάρι
+  ctx.strokeStyle = color;
+  ctx.lineWidth = size * 0.5;
+  ctx.beginPath();
+  ctx.moveTo(-size * 1.35, 0);
+  ctx.lineTo(-size * 0.05, 0);
+  ctx.stroke();
+  // κεφαλή
   ctx.fillStyle = color;
   ctx.beginPath();
-  ctx.moveTo(size, 0);
-  ctx.lineTo(-size * 0.6, size * 0.66);
-  ctx.lineTo(-size * 0.6, -size * 0.66);
+  ctx.moveTo(size * 1.05, 0);
+  ctx.lineTo(-size * 0.5, size * 0.74);
+  ctx.lineTo(-size * 0.5, -size * 0.74);
   ctx.closePath();
   ctx.fill();
   ctx.restore();
