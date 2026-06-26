@@ -61,12 +61,10 @@ strokes — **μόνο** όταν σηκωθεί το χέρι έχοντας φ
 2. **Φωνήματα.** Άκουσε τα clips (κουμπί **🔊 Φώνημα**) και έγκρινε — ιδίως την απόδοση
    των **κλειστών συμφώνων** (/p/, /t/, /k/): φυσικό φωνητικό όριο χωρίς ελάχιστο
    φωνήεν. Απόφαση ΛΘ: είτε σύντομο schwa είτε προφορική απόδοση στη συνεδρία.
-3. **Logo (ΠΡΟΣΩΡΙΝΟ).** Τα `brand_assets/logo/*.png` είναι **placeholder** στο στυλ
-   ΣΥΝΟΙΔΑ (όχι το επίσημο logo). Αντικατέστησέ τα με τα πραγματικά αρχεία, **ίδια
-   ονόματα** — καμία αλλαγή κώδικα:
-   - `brand_assets/logo/synoida-logo-header.png` (header, πάνω δεξιά)
-   - `brand_assets/logo/synoida-icon-pwa.png` (PWA icon, 512×512)
-4. *(Προαιρετικά)* Λέξεις-κλειδιά/εικόνες ανά γράμμα (ήδη υπάρχει `keyword` ανά γράμμα).
+3. *(Προαιρετικά)* Λέξεις-κλειδιά/εικόνες ανά γράμμα (ήδη υπάρχει `keyword` ανά γράμμα).
+
+> **Logo:** χρησιμοποιείται το **επίσημο** logo ΣΥΝΟΙΔΑ (ίδιο σήμα με τις άλλες
+> εφαρμογές), από το `synoida-site`. Αναπαραγωγή: `python3 tools/fetch_brand.py`.
 
 ## Δομή
 
@@ -85,8 +83,8 @@ grafo-grammata/
 │   ├── letters/       _dsl · lower (24) · upper (24) · index
 │   └── ui/            dom · settings · approval
 ├── sounds/            21 φωνήματα .mp3 (eSpeak-NG)
-├── brand_assets/      fonts (Comfortaa/Inter self-hosted) · logo (placeholder)
-└── tools/             gen_phonemes.sh · gen_logo.py · preview.html  (reproducible)
+├── brand_assets/      fonts (Comfortaa/Inter self-hosted) · logo (επίσημο ΣΥΝΟΙΔΑ)
+└── tools/             gen_phonemes.(py|sh) · fetch_brand.py · preview.html  (reproducible)
 ```
 
 ## Ομαλότητα γραφής (engine)
@@ -106,8 +104,8 @@ Bézier μέσω midpoints · `devicePixelRatio` scaling · `touch-action:none` 
 ```bash
 # Φωνήματα (απαιτεί espeak-ng + ffmpeg):
 bash tools/gen_phonemes.sh
-# Placeholder logo/icon (απαιτεί python3 + Pillow):
-python3 tools/gen_logo.py
+# Επίσημα brand assets (logo) από το synoida-site (απαιτεί python3 + Pillow + δίκτυο):
+python3 tools/fetch_brand.py
 # Τοπική προεπισκόπηση:
 python3 -m http.server 8000   # → http://localhost:8000/grafo-grammata/
 ```
