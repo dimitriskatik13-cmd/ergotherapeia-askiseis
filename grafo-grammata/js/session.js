@@ -37,8 +37,14 @@ export class Session {
 
   applySettings(s) {
     this.settings = s;
-    this.surface.setPadRatio(0.20 - 0.17 * s.letterSize);
-    if (this.tracer) this.tracer.setStrictness(s.strictness);
+    // Διευρυμένη διαβάθμιση: μέγιστο ≈ γεμίζει τον καμβά, ελάχιστο ≈ κανονικό
+    // γράμμα τετραδίου Α5 (βλ. Surface: το γράμμα «κουμπώνει» στη γραμμή βάσης
+    // και στο ελάχιστο φτάνει ~μέση της γραμμής).
+    this.surface.setPadRatio(0.02 + 0.45 * (1 - s.letterSize));
+    if (this.tracer) {
+      this.tracer.setStrictness(s.strictness);
+      this.tracer.setToleranceFloor(12 / this.surface.map.side);
+    }
     this._redrawGuide();
   }
 
@@ -77,6 +83,7 @@ export class Session {
 
     const tracerActive = (this.mode === 'trace' || this.mode === 'fading');
     this.tracer = tracerActive ? new Tracer(this.letter, this.settings.strictness) : null;
+    if (this.tracer) this.tracer.setToleranceFloor(12 / this.surface.map.side);
 
     this._redrawGuide();
 
@@ -100,6 +107,7 @@ export class Session {
     surf.clear('guide');
     renderGuide(surf.ctx('guide'), surf.w, surf.h, this.letter, {
       map: surf.map,
+      lineMap: surf.lineMap,
       level: this._effectiveLevel(),
       lines: this.settings.lines,
       arrowOpts: { size: 0.044 },
@@ -108,6 +116,7 @@ export class Session {
 
   _redrawAll() {
     // μετά από resize: ξαναζωγράφισε οδηγό· η μελάνη/animation επανεκκινεί καθαρά
+    if (this.tracer) this.tracer.setToleranceFloor(12 / this.surface.map.side);
     this._redrawGuide();
     if (this.mode === 'demo' && !this.completed) this.replayDemo();
     else this.surface.clear('ink');

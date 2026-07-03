@@ -5,8 +5,6 @@
 //   ink    : η γραφή του παιδιού + animation «μολυβιού»
 //   fx     : διακριτική επιβράβευση (glow, μπαλόνια)
 // ─────────────────────────────────────────────────────────────────────────────
-import { fieldMap } from './guide.js';
-
 export class Surface {
   constructor(container) {
     this.el = container;
@@ -31,7 +29,24 @@ export class Surface {
   setPadRatio(p) { this.padRatio = p; this._recomputeMap(); }
 
   _recomputeMap() {
-    if (this.w > 0 && this.h > 0) this.map = fieldMap(this.w, this.h, this.padRatio);
+    if (!(this.w > 0 && this.h > 0)) return;
+    const minWH = Math.min(this.w, this.h);
+    // Πλευρά του «τετραγώνου» του γράμματος από το μέγεθος (slider),
+    // με απόλυτο ελάχιστο ώστε το μικρότερο γράμμα ≈ κανονικό γράμμα τετραδίου Α5.
+    let side = (1 - 2 * this.padRatio) * minWH;
+    side = Math.max(56, Math.min(side, minWH * 0.96));
+    // Οι γραμμές τετραδίου ακολουθούν το γράμμα, αλλά «παγώνουν» σε ρεαλιστικό
+    // ελάχιστο (σαν χάρακα τετραδίου). Έτσι στα μικρά μεγέθη το γράμμα ΔΕΝ γεμίζει
+    // όλη τη γραμμή — στο ελάχιστο φτάνει περίπου ως τη μέση της.
+    const lineSide = Math.max(side, Math.min(112, minWH * 0.8));
+    const BASELINE = 0.82; // κοινή γραμμή βάσης γράμματος/γραμμών
+    const oxL = (this.w - lineSide) / 2;
+    const oyL = (this.h - lineSide) / 2;
+    const ox = (this.w - side) / 2;
+    const oy = oyL + BASELINE * (lineSide - side); // ευθυγράμμιση baseline
+    this._om = { x: ox, y: oy };
+    this.map = { side, tx: (x) => ox + x * side, ty: (y) => oy + y * side, s: (v) => v * side };
+    this.lineMap = { side: lineSide, tx: (x) => oxL + x * lineSide, ty: (y) => oyL + y * lineSide, s: (v) => v * lineSide };
   }
 
   ctx(name) { return this.layers[name].getContext('2d'); }
@@ -72,8 +87,7 @@ export class Surface {
     const rect = this.el.getBoundingClientRect();
     const px = clientX - rect.left;
     const py = clientY - rect.top;
-    const m = this.map;
-    return { x: (px - (this.w - m.side) / 2) / m.side, y: (py - (this.h - m.side) / 2) / m.side };
+    return { x: (px - this._om.x) / this.map.side, y: (py - this._om.y) / this.map.side };
   }
 
   destroy() { this._ro.disconnect(); }

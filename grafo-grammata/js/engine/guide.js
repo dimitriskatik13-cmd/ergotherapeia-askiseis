@@ -37,16 +37,17 @@ export function helpFlags(level) {
   }
 }
 
-/** Γραμμές τετραδίου. type: 'none' | 'single' | 'double'. */
+/** Γραμμές τετραδίου. type: 'none' | 'single' | 'double'. Απλώνουν σε όλο το
+ *  πλάτος του καμβά (σαν σελίδα τετραδίου), στις θέσεις ζωνών του map. */
 export function drawNotebookLines(ctx, w, h, map, zones, type = 'double') {
   if (type === 'none') return;
-  const x0 = map.tx(0.06), x1 = map.tx(0.94);
+  const x0 = 16, x1 = w - 16;
   const lineAt = (y, dashed = false, strong = false) => {
     ctx.save();
     ctx.beginPath();
     ctx.lineWidth = Math.max(1, map.s(strong ? 0.006 : 0.004));
     ctx.strokeStyle = tint(PALETTE.green, strong ? 0.45 : 0.30);
-    ctx.setLineDash(dashed ? [map.s(0.02), map.s(0.018)] : []);
+    ctx.setLineDash(dashed ? [Math.max(5, map.s(0.02)), Math.max(4, map.s(0.018))] : []);
     ctx.moveTo(x0, map.ty(y));
     ctx.lineTo(x1, map.ty(y));
     ctx.stroke();
@@ -85,7 +86,7 @@ export function drawStartNumbers(ctx, letter, map, { radius = 0.045, fontRatio =
   ctx.save();
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  const r = map.s(radius);
+  const r = Math.max(map.s(radius), 8); // ελάχιστο αναγνώσιμο μέγεθος στα μικρά γράμματα
   // De-collision: αν δύο σημεία έναρξης πέφτουν σχεδόν στο ίδιο σημείο,
   // απομακρύνουμε ελαφρώς το badge ώστε να φαίνονται και τα δύο.
   const placed = [];
@@ -109,11 +110,11 @@ export function drawStartNumbers(ctx, letter, map, { radius = 0.045, fontRatio =
     ctx.fillStyle = '#fff';
     ctx.arc(X, Y, r, 0, Math.PI * 2);
     ctx.fill();
-    ctx.lineWidth = map.s(0.008);
+    ctx.lineWidth = Math.max(map.s(0.008), 1.4);
     ctx.strokeStyle = col;
     ctx.stroke();
     ctx.fillStyle = col;
-    ctx.font = `700 ${map.s(fontRatio)}px Inter, sans-serif`;
+    ctx.font = `700 ${Math.max(map.s(fontRatio), 10)}px Inter, sans-serif`;
     ctx.fillText(st.startLabel, X, Y + map.s(0.002));
   });
   ctx.restore();
@@ -125,6 +126,7 @@ export function drawStartNumbers(ctx, letter, map, { radius = 0.045, fontRatio =
  */
 export function drawArrows(ctx, letter, map, { size = 0.04, spacing = 0.22 } = {}) {
   ctx.save();
+  const px = Math.max(map.s(size), 6); // ελάχιστο ορατό μέγεθος στα μικρά γράμματα
   letter.strokes.forEach((st, idx) => {
     const col = STROKE_COLORS[idx % STROKE_COLORS.length];
     const L = pathLength(st.points);
@@ -132,7 +134,7 @@ export function drawArrows(ctx, letter, map, { size = 0.04, spacing = 0.22 } = {
     for (let i = 0; i < n; i++) {
       const f = (i + 1) / (n + 1);
       const { x, y, angle } = pointAtFraction(st.points, f);
-      drawArrow(ctx, map.tx(x), map.ty(y), angle, map.s(size), col);
+      drawArrow(ctx, map.tx(x), map.ty(y), angle, px, col);
     }
   });
   ctx.restore();
@@ -175,9 +177,10 @@ function drawArrow(ctx, x, y, angle, size, color) {
  */
 export function renderGuide(ctx, w, h, letter, opts = {}) {
   const map = opts.map || fieldMap(w, h, opts.padRatio);
+  const lineMap = opts.lineMap || map; // οι γραμμές μπορεί να έχουν δικό τους χάρτη
   const flags = opts.force || helpFlags(opts.level ?? 1);
   if (opts.lines && opts.lines !== 'none') {
-    drawNotebookLines(ctx, w, h, map, letter.zones, opts.lines);
+    drawNotebookLines(ctx, w, h, lineMap, letter.zones, opts.lines);
   }
   if (flags.guide) {
     drawGuideLetter(ctx, letter, map, { color: opts.guideColor, alpha: opts.guideAlpha });

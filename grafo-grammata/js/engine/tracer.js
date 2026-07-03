@@ -43,6 +43,12 @@ export class Tracer {
     this.coverNeed = 0.66 + 0.28 * s;   // χαλαρό 0.66 → αυστηρό 0.94 (πιο ακριβές)
   }
 
+  /** Ελάχιστη ανοχή σε normalized μονάδες — ώστε στα ΜΙΚΡΑ μεγέθη γράμματος η
+   *  ανοχή να μην πέφτει κάτω από λίγα pixels (φυσικό όριο δαχτύλου/Pencil). */
+  setToleranceFloor(f) { this.tolFloor = Math.max(0, f || 0); }
+
+  _tol() { return Math.max(this.tol, this.tolFloor || 0); }
+
   reset() {
     this.active = 0;
     this.covered = this.samples.map((arr) => new Array(arr.length).fill(false));
@@ -71,10 +77,11 @@ export class Tracer {
   /** Έναρξη μιας πινελιάς του παιδιού. Επιστρέφει απαλή υπόδειξη (ή null). */
   beginTouch(pt) {
     if (this.done) return null;
+    const tol = this._tol();
     const stroke = this.samples[this.active];
     const { idx, dist } = this._nearest(stroke, pt);
     this.touchStartIdx = idx;
-    if (dist > this.tol * 2.2) {
+    if (dist > tol * 2.2) {
       return { type: 'offpath', msg: 'Ξεκίνα πάνω στη γραμμή 🙂' };
     }
     const startCovered = this.covered[this.active][0];
@@ -88,18 +95,26 @@ export class Tracer {
   /** Τροφοδότηση σημείων (normalized) κατά τη γραφή. */
   feed(points) {
     if (this.done) return null;
+    const tol = this._tol();
     const stroke = this.samples[this.active];
     const cov = this.covered[this.active];
     for (const pt of points) {
       const { idx, dist } = this._nearest(stroke, pt);
-      if (dist <= this.tol) {
+      if (dist <= tol) {
         cov[idx] = true;
         // απαλό «πάχος» κάλυψης: μάρκαρε και τους άμεσους γείτονες
-        if (idx > 0 && dist <= this.tol * 0.85) cov[idx - 1] = true;
-        if (idx < cov.length - 1 && dist <= this.tol * 0.85) cov[idx + 1] = true;
+        if (idx > 0 && dist <= tol * 0.85) cov[idx - 1] = true;
+        if (idx < cov.length - 1 && dist <= tol * 0.85) cov[idx + 1] = true;
       }
     }
-    // ΠΟΤΕ ολοκλήρωση κατά τη γραφή — μόνο όταν σηκωθεί το χέρι (endTouch).
+    // Αν το τρέχον stroke ολοκληρώθηκε ΚΑΤΑ τη διάρκεια της κίνησης, προχώρησε
+    // στο επόμενο — έτσι το παιδί μπορεί να γράψει π.χ. το η με ΜΙΑ συνεχόμενη
+    // κίνηση (①→②) χωρίς να σηκώσει το χέρι. Η ολοκλήρωση ΤΟΥ ΓΡΑΜΜΑΤΟΣ όμως
+    // κρίνεται ΜΟΝΟ στο σήκωμα (endTouch) — ποτέ ήχος/εφέ ενώ ακόμα γράφει.
+    while (!this.done && this.active < this.samples.length - 1 && this._strokeDone(this.active)) {
+      this.active += 1;
+      this.touchStartIdx = null;   // η αφή δεν «ξεκίνησε» σε αυτό το stroke
+    }
     return null;
   }
 
@@ -125,6 +140,9 @@ export class Tracer {
       this.touchStartIdx = null;
       return { type: 'stroke-done', next: this.active };
     }
+    // Αν η αφή ΔΕΝ ξεκίνησε σε αυτό το stroke (συνεχόμενη κίνηση που πέρασε ήδη
+    // στο επόμενο), μην δίνεις υποδείξεις — το παιδί απλώς σήκωσε το χέρι.
+    if (this.touchStartIdx === null) return null;
     // Απαλές, μη τιμωρητικές υποδείξεις
     const cov = this.covered[this.active];
     const cv = this.coverage(this.active);

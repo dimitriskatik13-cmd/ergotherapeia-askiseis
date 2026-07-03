@@ -100,8 +100,8 @@ export function buildSettings({ store, onOpenApproval }) {
     inner.appendChild(toggle('Απόκριση πίεσης (Pencil)',
       () => store.get('pressure'), (v) => store.set('pressure', v)));
 
-    // Μέγεθος
-    inner.appendChild(slider('Μέγεθος γράμματος', 'Μικρό', 'Μεγάλο',
+    // Μέγεθος (ελάχιστο ≈ κανονικό γράμμα σε τετράδιο Α5)
+    inner.appendChild(slider('Μέγεθος γράμματος', 'Τετράδιο Α5', 'Μεγάλο',
       () => store.get('letterSize'), (v) => store.set('letterSize', v)));
 
     // Γραμμές τετραδίου
