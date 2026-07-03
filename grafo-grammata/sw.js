@@ -2,7 +2,8 @@
    Service worker — offline PWA. Προφορτώνει το app shell + γραμματοσειρές +
    φωνήματα ώστε να δουλεύει χωρίς ίντερνετ στο γραφείο.
    ───────────────────────────────────────────────────────────────────────────── */
-const VERSION = 'grafo-v10';
+// Ανεβαίνει ΜΑΖΙ με το APP_VERSION στο js/version.js σε κάθε deploy.
+const VERSION = 'grafo-v11';
 const CACHE = `synoida-${VERSION}`;
 
 const PHONEMES = ['a','e','i','o','v','gh','dh','z','th','k','l','m','n','ks','p','r','s','t','f','kh','ps'];
@@ -12,7 +13,7 @@ const ASSETS = [
   'index.html',
   'manifest.webmanifest',
   'css/tokens.css', 'css/base.css', 'css/components.css', 'css/app.css',
-  'js/main.js', 'js/state.js', 'js/audio.js', 'js/feedback.js', 'js/session.js', 'js/palette.js',
+  'js/main.js', 'js/state.js', 'js/audio.js', 'js/feedback.js', 'js/session.js', 'js/palette.js', 'js/version.js',
   'js/engine/surface.js', 'js/engine/input.js', 'js/engine/pencil.js',
   'js/engine/tracer.js', 'js/engine/animator.js', 'js/engine/guide.js',
   'js/letters/_dsl.js', 'js/letters/lower.js', 'js/letters/upper.js', 'js/letters/index.js',
@@ -24,7 +25,12 @@ const ASSETS = [
 
 self.addEventListener('install', (e) => {
   e.waitUntil(
-    caches.open(CACHE).then((c) => c.addAll(ASSETS)).then(() => self.skipWaiting())
+    caches.open(CACHE)
+      // cache:'no-cache' → πάντα επαλήθευση με τον server, ΟΧΙ από HTTP cache.
+      // Αλλιώς μια νέα έκδοση του SW μπορεί να ξανα-κασάρει ΠΑΛΙΑ αρχεία και η
+      // εφαρμογή να «κολλήσει» σε παλιά έκδοση μέχρι το επόμενο deploy.
+      .then((c) => c.addAll(ASSETS.map((u) => new Request(u, { cache: 'no-cache' }))))
+      .then(() => self.skipWaiting())
   );
 });
 

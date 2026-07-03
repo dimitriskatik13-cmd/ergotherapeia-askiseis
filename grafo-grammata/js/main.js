@@ -9,6 +9,7 @@ import { buildSettings } from './ui/settings.js';
 import { buildApproval } from './ui/approval.js';
 import { el, clear } from './ui/dom.js';
 import { lettersByCase, findLetter, uniquePhonemeFiles } from './letters/index.js';
+import { APP_VERSION } from './version.js';
 
 const MODES = [
   { value: 'demo', label: 'Δείξε μου' },
@@ -35,7 +36,7 @@ function bootstrap() {
   const header = el('header', { class: 'topbar' }, [
     el('div', { class: 'topbar__title' }, [
       el('h1', {}, ['Γράφω Γράμματα']),
-      el('span', { class: 'topbar__sub' }, ['ΣΥΝΟΙΔΑ · κλινικό εργαλείο γραφής']),
+      el('span', { class: 'topbar__sub' }, [`ΣΥΝΟΙΔΑ · κλινικό εργαλείο γραφής · έκδ. ${APP_VERSION}`]),
     ]),
     el('div', { class: 'topbar__right' }, [
       gear,

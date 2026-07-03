@@ -6,6 +6,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { el, clear } from './dom.js';
 import { lettersByCase } from '../letters/index.js';
+import { APP_VERSION } from '../version.js';
 
 function segmented(label, options, getValue, onPick) {
   const seg = el('div', { class: 'seg' });
@@ -126,7 +127,7 @@ export function buildSettings({ store, onOpenApproval }) {
     }, ['🔎 Έγκριση φοράς (προεπισκόπηση)']));
 
     inner.appendChild(el('p', { class: 'hintnote hintnote--muted' }, [
-      'Δεν αποθηκεύεται κανένα δεδομένο παιδιού. Οι ρυθμίσεις μένουν τοπικά στη συσκευή.',
+      `Δεν αποθηκεύεται κανένα δεδομένο παιδιού. Οι ρυθμίσεις μένουν τοπικά στη συσκευή. · Γράφω Γράμματα, έκδοση ${APP_VERSION}`,
     ]));
   }
 
