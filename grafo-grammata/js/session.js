@@ -31,7 +31,11 @@ export class Session {
       onDown: (p) => this._down(p),
       onMove: (ps) => this._move(ps),
       onUp: (p) => this._up(p),
+      onCancel: () => this._cancelStroke(),
     });
+    this._undo = null;        // offscreen canvas για αναίρεση πινελιάς (παλάμη)
+    this._undoValid = false;
+    this._tracerSnap = null;
     this.surface.onResize(() => this._redrawAll());
   }
 
@@ -41,6 +45,7 @@ export class Session {
     // γράμμα τετραδίου Α5 (βλ. Surface: το γράμμα «κουμπώνει» στη γραμμή βάσης
     // και στο ελάχιστο φτάνει ~μέση της γραμμής).
     this.surface.setPadRatio(0.02 + 0.45 * (1 - s.letterSize));
+    this.input.setPenOnly(s.penOnly);
     if (this.tracer) {
       this.tracer.setStrictness(s.strictness);
       this.tracer.setToleranceFloor(12 / this.surface.map.side);
@@ -125,6 +130,10 @@ export class Session {
   // ── Input → Pencil + Tracer ────────────────────────────────────────────────
   _down(p) {
     if (this.completed) return;
+    // Στιγμιότυπο ΠΡΙΝ την πινελιά — αν αποδειχθεί «παλάμη» (έρθει Pencil ή
+    // pointercancel), αναιρείται πλήρως: μελάνη ΚΑΙ πρόοδος ιχνηλάτησης.
+    this._snapshotInk();
+    this._tracerSnap = this.tracer ? this.tracer.snapshot() : null;
     this.pencil = new Pencil(this.surface.ctx('ink'), this.surface.map, {
       color: INK_COLOR,
       baseWidth: this.settings.penWidth,
@@ -150,12 +159,46 @@ export class Session {
     if (!this.pencil) return;
     this.pencil.end();
     this.pencil = null;
+    this._undoValid = false;           // η πινελιά «έκατσε» — δεν αναιρείται πια
+    this._tracerSnap = null;
     if (this.tracer && !this.completed) {
       this.tracer.feed([p]);           // το τελικό σημείο μετράει στην κάλυψη
       const r = this.tracer.endTouch();
       if (r && r.type === 'complete') this._completeInternal();
       else if (r && r.msg) this.feedback.hint(r.msg);
     }
+  }
+
+  // ── Αναίρεση τυχαίας πινελιάς (παλάμη / pointercancel) ─────────────────────
+  _snapshotInk() {
+    const ink = this.surface.layers.ink;
+    if (!this._undo) this._undo = document.createElement('canvas');
+    if (this._undo.width !== ink.width || this._undo.height !== ink.height) {
+      this._undo.width = ink.width;
+      this._undo.height = ink.height;
+    } else {
+      this._undo.getContext('2d').clearRect(0, 0, this._undo.width, this._undo.height);
+    }
+    this._undo.getContext('2d').drawImage(ink, 0, 0);
+    this._undoValid = true;
+  }
+
+  _cancelStroke() {
+    if (!this.pencil) return;
+    this.pencil = null;
+    if (this._undoValid) {
+      const ink = this.surface.layers.ink;
+      const ctx = ink.getContext('2d');
+      ctx.save();
+      ctx.setTransform(1, 0, 0, 1, 0, 0);
+      ctx.clearRect(0, 0, ink.width, ink.height);
+      ctx.drawImage(this._undo, 0, 0);
+      ctx.restore();
+      this._undoValid = false;
+    }
+    if (this.tracer && this._tracerSnap) this.tracer.restore(this._tracerSnap);
+    this._tracerSnap = null;
+    this.feedback.clearHint();
   }
 
   // ── Ολοκλήρωση ──────────────────────────────────────────────────────────────

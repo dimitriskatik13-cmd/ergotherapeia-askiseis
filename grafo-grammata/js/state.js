@@ -13,6 +13,7 @@ export const DEFAULTS = {
   strictness: 0.4,        // 0 χαλαρό .. 1 αυστηρό
   penWidth: 0.018,        // normalized base width (παχύ→λεπτό)
   pressure: false,        // απόκριση πίεσης Pencil
+  penOnly: false,         // «Μόνο Pencil»: το δάχτυλο δεν γράφει (απόρριψη παλάμης)
   letterSize: 0.6,        // 0..1 (μικρό→μεγάλο)
   lines: 'double',        // 'none' | 'single' | 'double'
   animSpeed: 0.5,         // ταχύτητα επίδειξης 0..1

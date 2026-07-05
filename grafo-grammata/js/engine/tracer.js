@@ -56,6 +56,24 @@ export class Tracer {
     this.touchStartIdx = null;
   }
 
+  /** Στιγμιότυπο κατάστασης — για αναίρεση τυχαίας πινελιάς (π.χ. παλάμη). */
+  snapshot() {
+    return {
+      active: this.active,
+      done: this.done,
+      touchStartIdx: this.touchStartIdx,
+      covered: this.covered.map((c) => c.slice()),
+    };
+  }
+
+  restore(s) {
+    if (!s) return;
+    this.active = s.active;
+    this.done = s.done;
+    this.touchStartIdx = s.touchStartIdx;
+    this.covered = s.covered.map((c) => c.slice());
+  }
+
   get totalStrokes() { return this.samples.length; }
 
   _nearest(stroke, pt) {

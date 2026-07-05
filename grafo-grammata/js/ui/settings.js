@@ -101,6 +101,14 @@ export function buildSettings({ store, onOpenApproval }) {
     inner.appendChild(toggle('Απόκριση πίεσης (Pencil)',
       () => store.get('pressure'), (v) => store.set('pressure', v)));
 
+    // Μόνο Pencil (απόρριψη παλάμης)
+    inner.appendChild(toggle('Μόνο Pencil (απόρριψη παλάμης)',
+      () => store.get('penOnly'), (v) => store.set('penOnly', v)));
+    inner.appendChild(el('p', { class: 'hintnote' }, [
+      'Όταν είναι ενεργό, γράφει ΜΟΝΟ το Apple Pencil — το χέρι/δάχτυλο δεν αφήνει σημάδι. ',
+      'Και χωρίς αυτό, το Pencil έχει πάντα προτεραιότητα από την παλάμη.',
+    ]));
+
     // Μέγεθος (ελάχιστο ≈ κανονικό γράμμα σε τετράδιο Α5)
     inner.appendChild(slider('Μέγεθος γράμματος', 'Τετράδιο Α5', 'Μεγάλο',
       () => store.get('letterSize'), (v) => store.set('letterSize', v)));

@@ -162,6 +162,12 @@ function bootstrap() {
         for (let i = 3; i < d.length; i += 4) if (d[i] !== 0) return false;
         return true;
       },
+      inkAlphaAt: (nx, ny) => {
+        const s = session.surface;
+        const X = Math.round(s.map.tx(nx) * s.dpr);
+        const Y = Math.round(s.map.ty(ny) * s.dpr);
+        return s.layers.ink.getContext('2d').getImageData(X, Y, 1, 1).data[3];
+      },
       done: () => session.completed,
     };
   }
