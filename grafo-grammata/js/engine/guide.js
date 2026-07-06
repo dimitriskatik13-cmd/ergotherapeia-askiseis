@@ -86,7 +86,9 @@ export function drawStartNumbers(ctx, letter, map, { radius = 0.045, fontRatio =
   ctx.save();
   ctx.textAlign = 'center';
   ctx.textBaseline = 'middle';
-  const r = Math.max(map.s(radius), 8); // ελάχιστο αναγνώσιμο μέγεθος στα μικρά γράμματα
+  // Στα μικρά μεγέθη τα badges ΜΙΚΡΑΙΝΟΥΝ μαζί με το γράμμα (αναλογικά με την
+  // πλευρά του), με μικρό όριο αναγνωσιμότητας — ώστε να μην κρύβουν το ίχνος.
+  const r = Math.max(map.s(radius), Math.min(8, map.side * 0.095));
   // De-collision: αν δύο σημεία έναρξης πέφτουν σχεδόν στο ίδιο σημείο,
   // απομακρύνουμε ελαφρώς το badge ώστε να φαίνονται και τα δύο.
   const placed = [];
@@ -110,11 +112,12 @@ export function drawStartNumbers(ctx, letter, map, { radius = 0.045, fontRatio =
     ctx.fillStyle = '#fff';
     ctx.arc(X, Y, r, 0, Math.PI * 2);
     ctx.fill();
-    ctx.lineWidth = Math.max(map.s(0.008), 1.4);
+    ctx.lineWidth = Math.max(r * 0.16, 1.1);
     ctx.strokeStyle = col;
     ctx.stroke();
     ctx.fillStyle = col;
-    ctx.font = `700 ${Math.max(map.s(fontRatio), 10)}px Inter, sans-serif`;
+    // Η γραμματοσειρά δένει με την ακτίνα του badge — μικραίνει μαζί του.
+    ctx.font = `700 ${Math.max(r * 1.2, 6)}px Inter, sans-serif`;
     ctx.fillText(st.startLabel, X, Y + map.s(0.002));
   });
   ctx.restore();
@@ -126,11 +129,14 @@ export function drawStartNumbers(ctx, letter, map, { radius = 0.045, fontRatio =
  */
 export function drawArrows(ctx, letter, map, { size = 0.04, spacing = 0.22 } = {}) {
   ctx.save();
-  const px = Math.max(map.s(size), 6); // ελάχιστο ορατό μέγεθος στα μικρά γράμματα
+  // Στα μικρά μεγέθη τα βέλη μικραίνουν μαζί με το γράμμα (με όριο ορατότητας)
+  // και μπαίνει ΕΝΑ ανά γραμμή — για να φαίνεται καθαρά το ίχνος.
+  const px = Math.max(map.s(size), Math.min(6, map.side * 0.075));
+  const tiny = map.side < 90;
   letter.strokes.forEach((st, idx) => {
     const col = STROKE_COLORS[idx % STROKE_COLORS.length];
     const L = pathLength(st.points);
-    const n = Math.max(1, Math.min(3, Math.round(L / spacing)));
+    const n = tiny ? 1 : Math.max(1, Math.min(3, Math.round(L / spacing)));
     for (let i = 0; i < n; i++) {
       const f = (i + 1) / (n + 1);
       const { x, y, angle } = pointAtFraction(st.points, f);
