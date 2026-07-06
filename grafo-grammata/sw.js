@@ -3,10 +3,11 @@
    φωνήματα ώστε να δουλεύει χωρίς ίντερνετ στο γραφείο.
    ───────────────────────────────────────────────────────────────────────────── */
 // Ανεβαίνει ΜΑΖΙ με το APP_VERSION στο js/version.js σε κάθε deploy.
-const VERSION = 'grafo-v13';
+const VERSION = 'grafo-v14';
 const CACHE = `synoida-${VERSION}`;
 
 const PHONEMES = ['a','e','i','o','v','gh','dh','z','th','k','l','m','n','ks','p','r','s','t','f','kh','ps'];
+const NUMBER_SOUNDS = Array.from({ length: 32 }, (_, i) => `sounds/num-${i}.mp3`);
 
 const ASSETS = [
   './',
@@ -16,11 +17,12 @@ const ASSETS = [
   'js/main.js', 'js/state.js', 'js/audio.js', 'js/feedback.js', 'js/session.js', 'js/palette.js', 'js/version.js',
   'js/engine/surface.js', 'js/engine/input.js', 'js/engine/pencil.js',
   'js/engine/tracer.js', 'js/engine/animator.js', 'js/engine/guide.js',
-  'js/letters/_dsl.js', 'js/letters/lower.js', 'js/letters/upper.js', 'js/letters/index.js',
+  'js/letters/_dsl.js', 'js/letters/lower.js', 'js/letters/upper.js', 'js/letters/numbers.js', 'js/letters/index.js',
   'js/ui/dom.js', 'js/ui/settings.js', 'js/ui/approval.js',
   'brand_assets/fonts/Comfortaa-Variable.ttf', 'brand_assets/fonts/Inter-Variable.ttf',
   'brand_assets/logo/synoida-logo-header.png', 'brand_assets/logo/synoida-icon-pwa.png',
   ...PHONEMES.map((p) => `sounds/${p}.mp3`),
+  ...NUMBER_SOUNDS,
 ];
 
 self.addEventListener('install', (e) => {

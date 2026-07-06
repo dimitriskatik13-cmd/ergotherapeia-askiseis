@@ -63,9 +63,9 @@ export function buildSettings({ store, onOpenApproval }) {
       el('button', { class: 'icon-btn', 'aria-label': 'Κλείσιμο', onclick: () => close() }, ['✕']),
     ]));
 
-    // Πεζά / Κεφαλαία
-    inner.appendChild(segmented('Σετ γραμμάτων',
-      [{ label: 'Πεζά', value: 'lower' }, { label: 'Κεφαλαία', value: 'upper' }],
+    // Πεζά / Κεφαλαία / Αριθμοί
+    inner.appendChild(segmented('Σετ',
+      [{ label: 'Πεζά', value: 'lower' }, { label: 'Κεφαλαία', value: 'upper' }, { label: 'Αριθμοί 0–31', value: 'numbers' }],
       () => store.get('case'),
       (v) => {
         if (v === store.get('case')) return;
@@ -140,7 +140,8 @@ export function buildSettings({ store, onOpenApproval }) {
   }
 
   function buildLetterChips(store) {
-    const wrap = el('div', { class: 'field' }, [el('label', { class: 'field__label' }, ['Στοχευμένα γράμματα'])]);
+    const isNum = store.get('case') === 'numbers';
+    const wrap = el('div', { class: 'field' }, [el('label', { class: 'field__label' }, [isNum ? 'Στοχευμένοι αριθμοί' : 'Στοχευμένα γράμματα'])]);
     const grid = el('div', { class: 'chips' });
     const list = lettersByCase(store.get('case'));
     const sel = store.get('targetLetters');

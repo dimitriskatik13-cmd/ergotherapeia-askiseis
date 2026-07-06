@@ -29,9 +29,10 @@ export function buildApproval(store) {
       force: { guide: true, numbers: true, arrows: true },
       arrowOpts: { size: 0.04 },
     });
+    const phon = letter.case === 'numbers' ? '' : ` /${letter.phonemeKey}/ ·`;
     const cap = el('div', { class: 'approval__cap' }, [
       el('strong', {}, [letter.char]),
-      el('span', {}, [` /${letter.phonemeKey}/ · ${letter.strokes.length} γρ.`]),
+      el('span', {}, [`${phon} ${letter.strokes.length} γρ.`]),
     ]);
     return el('div', { class: 'approval__cell' }, [cap, cv]);
   }
@@ -44,7 +45,7 @@ export function buildApproval(store) {
   function renderHead() {
     clear(head);
     const seg = el('div', { class: 'seg' });
-    [['lower', 'Πεζά'], ['upper', 'Κεφαλαία']].forEach(([val, label]) => {
+    [['lower', 'Πεζά'], ['upper', 'Κεφαλαία'], ['numbers', 'Αριθμοί']].forEach(([val, label]) => {
       seg.appendChild(el('button', {
         class: 'seg__btn' + (viewCase === val ? ' is-active' : ''), type: 'button',
         onclick: () => { viewCase = val; renderHead(); renderGridFor(val); },

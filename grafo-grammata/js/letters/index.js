@@ -4,6 +4,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { LOWER, ZONES } from './lower.js';
 import { UPPER } from './upper.js';
+import { NUMBERS } from './numbers.js';
 
 function build(def, letterCase) {
   return {
@@ -21,13 +22,16 @@ function build(def, letterCase) {
 
 export const LETTERS_LOWER = LOWER.map((d) => build(d, 'lower'));
 export const LETTERS_UPPER = UPPER.map((d) => build(d, 'upper'));
-export const ALL_LETTERS = [...LETTERS_LOWER, ...LETTERS_UPPER];
+export const LETTERS_NUMBERS = NUMBERS.map((d) => build(d, 'numbers'));
+export const ALL_LETTERS = [...LETTERS_LOWER, ...LETTERS_UPPER, ...LETTERS_NUMBERS];
 
 // Κανονική σειρά ελληνικού αλφαβήτου (για ταξινόμηση πάνελ θεραπευτή).
 export const GREEK_ORDER = 'αβγδεζηθικλμνξοπρστυφχψω';
 
 export function lettersByCase(letterCase) {
-  return letterCase === 'upper' ? LETTERS_UPPER : LETTERS_LOWER;
+  if (letterCase === 'upper') return LETTERS_UPPER;
+  if (letterCase === 'numbers') return LETTERS_NUMBERS;
+  return LETTERS_LOWER;
 }
 
 export function findLetter(char, letterCase) {

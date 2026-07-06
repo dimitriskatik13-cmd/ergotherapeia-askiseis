@@ -54,7 +54,9 @@ export class Session {
   }
 
   accentFor(letter) {
-    const i = Math.max(0, GREEK_ORDER.indexOf(letter.char.toLowerCase()));
+    let i = GREEK_ORDER.indexOf(letter.char.toLowerCase());
+    if (i < 0) i = parseInt(letter.char, 10); // αριθμοί: χρώμα από την τιμή τους
+    if (!Number.isFinite(i) || i < 0) i = 0;
     return STROKE_COLORS[i % STROKE_COLORS.length];
   }
 

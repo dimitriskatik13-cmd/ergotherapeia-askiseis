@@ -14,12 +14,15 @@
 <body>
 <div class="grid" id="grid"></div>
 <script type="module">
-import { LETTERS_LOWER, LETTERS_UPPER } from '../js/letters/index.js';
+import { LETTERS_LOWER, LETTERS_UPPER, LETTERS_NUMBERS } from '../js/letters/index.js';
 import { renderGuide, fieldMap } from '../js/engine/guide.js';
 const Q = new URLSearchParams(location.search);
-let SET = Q.get('c') === 'upper' ? LETTERS_UPPER : LETTERS_LOWER;
+let SET = Q.get('c') === 'upper' ? LETTERS_UPPER : Q.get('c') === 'numbers' ? LETTERS_NUMBERS : LETTERS_LOWER;
 const ONLY = Q.get('only');
-if (ONLY) { const want = [...ONLY]; SET = SET.filter((l) => want.includes(l.char)); }
+if (ONLY) {
+  const want = ONLY.includes(',') ? ONLY.split(',') : [...ONLY];
+  SET = SET.filter((l) => want.includes(l.char));
+}
 
 const SIZE = ONLY ? 420 : 220;
 const grid = document.getElementById('grid');
@@ -30,7 +33,9 @@ function cell(letter) {
   div.className = 'cell';
   const cap = document.createElement('div');
   cap.className = 'cap';
-  cap.textContent = `${letter.char}  /${letter.phonemeKey}/  ${letter.strokes.length}σ`;
+  cap.textContent = letter.case === 'numbers'
+    ? `${letter.char}  ${letter.strokes.length}σ`
+    : `${letter.char}  /${letter.phonemeKey}/  ${letter.strokes.length}σ`;
   div.appendChild(cap);
   const cv = document.createElement('canvas');
   const dpr = 2;
