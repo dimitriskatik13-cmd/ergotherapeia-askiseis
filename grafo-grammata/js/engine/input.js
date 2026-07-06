@@ -16,8 +16,12 @@
 // Η CSS ορίζει touch-action:none στο surface element.
 // ─────────────────────────────────────────────────────────────────────────────
 
-const PEN_STICKY_MS = 15000; // μετά από Pencil, το δάχτυλο δεν γράφει για τόσο
-const PALM_SIZE_PX = 30;     // επαφή πλατύτερη από τόσο ⇒ παλάμη
+// ΠΡΟΣΟΧΗ στα όρια: το iOS αναφέρει το ΚΑΝΟΝΙΚΟ δάχτυλο ως επαφή ~40-50px,
+// οπότε το όριο παλάμης πρέπει να είναι αρκετά ψηλότερα — αλλιώς μπλοκάρεται
+// η γραφή με δάχτυλο. Το sticky παράθυρο κρατιέται μικρό ώστε λίγο μετά το
+// Pencil να ξαναδουλεύει το δάχτυλο.
+const PEN_STICKY_MS = 8000;  // μετά από ΕΠΑΦΗ Pencil, το δάχτυλο δεν γράφει για τόσο
+const PALM_SIZE_PX = 55;     // επαφή πλατύτερη από τόσο ⇒ παλάμη
 
 export class InputController {
   constructor(surface, handlers = {}) {
@@ -83,8 +87,8 @@ export class InputController {
   }
 
   _handleMove(e) {
-    // Και το hover του Pencil (M2) μετράει ως «πρόσφατη χρήση Pencil».
-    if (e.pointerType === 'pen') this.lastPenTs = Date.now();
+    // ΜΟΝΟ η επαφή (pointerdown) του Pencil ανανεώνει το sticky — όχι το hover,
+    // αλλιώς το δάχτυλο μπλοκάρεται όσο το Pencil απλώς πλησιάζει την οθόνη.
     if (!this.enabled || e.pointerId !== this.activeId) return;
     e.preventDefault();
     let evs = [];
@@ -99,6 +103,8 @@ export class InputController {
   }
 
   _handleUp(e, cancelled) {
+    // το σήκωμα του Pencil μετράει ως «πρόσφατη χρήση» (sticky από το τέλος της πινελιάς)
+    if (e.pointerType === 'pen') this.lastPenTs = Date.now();
     if (e.pointerId !== this.activeId) return;
     e.preventDefault();
     try { this.surface.el.releasePointerCapture(e.pointerId); } catch (_) {}
