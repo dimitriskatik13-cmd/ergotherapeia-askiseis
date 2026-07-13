@@ -2,37 +2,6 @@
    App layout — topbar, stage, rail, writing surface, hint, approval
    ───────────────────────────────────────────────────────────────────────────── */
 
-/* ── Topbar ─────────────────────────────────────────────────────────────────── */
-.topbar {
-  position: relative;
-  z-index: 2;
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: var(--s3);
-  padding: var(--s3) var(--s4);
-}
-.topbar__title h1 {
-  font-family: var(--font-display);
-  font-weight: 500;                 /* ελαφρύ weight — brand υπογραφή (όχι μαύρα bold) */
-  font-size: clamp(20px, 2.4vw, 30px);
-  color: var(--grey);
-  margin: 0;
-  letter-spacing: .2px;
-}
-.topbar__sub {
-  font-size: 12px;
-  color: rgba(88, 89, 91, .7);
-  font-weight: 500;
-}
-.topbar__right { display: flex; align-items: center; gap: var(--s3); }
-.brandlogo {
-  height: 42px;
-  width: auto;
-  max-width: 24vw;
-  display: block;
-}
-
 /* ── Stage ──────────────────────────────────────────────────────────────────── */
 .stage {
   position: relative;
