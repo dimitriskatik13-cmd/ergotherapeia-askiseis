@@ -156,12 +156,19 @@ export function buildSettings({ store, onOpenApproval }) {
         class: 'chip' + (active ? ' is-active' : ''), type: 'button',
         onclick: () => {
           let cur = store.get('targetLetters') ? [...store.get('targetLetters')] : [];
-          if (cur.includes(l.char)) cur = cur.filter((c) => c !== l.char);
-          else cur.push(l.char);
+          const selecting = !cur.includes(l.char);
+          if (selecting) cur.push(l.char);
+          else cur = cur.filter((c) => c !== l.char);
           const next = cur.length ? cur : null;
-          let patch = { targetLetters: next };
-          // αν το τρέχον γράμμα δεν είναι πια στο σετ, διάλεξε το πρώτο επιλεγμένο
-          if (next && !next.includes(store.get('currentChar'))) patch.currentChar = next[0];
+          const patch = { targetLetters: next };
+          if (selecting) {
+            // Ό,τι πατάς εμφανίζεται ΑΜΕΣΩΣ στον καμβά (ο προηγούμενος «φεύγει»)·
+            // τα βελάκια ◀ ▶ κυκλοφορούν ανάμεσα σε όλα τα επιλεγμένα.
+            patch.currentChar = l.char;
+          } else if (next && !next.includes(store.get('currentChar'))) {
+            // αφαίρεσε το τρέχον → δείξε το πρώτο που απομένει
+            patch.currentChar = next[0];
+          }
           store.update(patch);
           rebuild();
         },
