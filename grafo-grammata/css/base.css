@@ -13,6 +13,8 @@ body {
   font-family: var(--font-ui);
   color: var(--grey);
   background: var(--bg);
+  display: flex;
+  flex-direction: column;
   overflow: hidden;                 /* καμία κύλιση — κλινικό περιβάλλον */
   overscroll-behavior: none;
   -webkit-user-select: none;
@@ -25,10 +27,102 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
 
 .app {
   position: relative;
-  height: 100dvh;
+  flex: 1;
+  min-height: 0;
   display: flex;
   flex-direction: column;
-  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+  padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
+}
+
+/* ==== Κοινό στήσιμο ΣΥΝΟΙΔΑ: λωρίδες, κεφαλίδα εντύπου, υποσέλιδο ==== */
+.brand-strips {
+  display: flex;
+  height: 8px;
+  width: 100%;
+  flex-shrink: 0;
+}
+.brand-strips > div { flex: 1; }
+.brand-strips .s1 { background: var(--green);  }
+.brand-strips .s2 { background: var(--red);    }
+.brand-strips .s3 { background: var(--blue);   }
+.brand-strips .s4 { background: var(--orange); }
+.brand-strips .s5 { background: var(--grey);   }
+
+.doc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  flex-shrink: 0;
+  padding: 18px 22px 12px;
+  border-bottom: 1px solid #E5E7EB;
+  background: var(--paper);
+  position: relative;
+  z-index: 2;
+}
+.doc-logo {
+  display: block;
+  height: 74px;
+  width: auto;
+  flex: 0 0 auto;
+}
+.doc-right {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+.doc-ident {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  text-align: right;
+  align-items: flex-end;
+}
+.doc-brand {
+  font-size: 19px;
+  letter-spacing: 0.08em;
+  color: var(--grey);
+  font-weight: 600;
+  line-height: 1.1;
+}
+.doc-brand-sub {
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  color: var(--grey);
+  opacity: 0.55;
+  font-weight: 500;
+  text-transform: uppercase;
+}
+
+.app-footer {
+  width: 100%;
+  flex-shrink: 0;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px 18px;
+  padding: 8px 22px 10px;
+  border-top: 1px solid #E5E7EB;
+  background: var(--paper);
+  color: var(--grey);
+  font-size: 11px;
+  opacity: 0.85;
+  position: relative;
+  z-index: 2;
+}
+.app-footer .locations { font-weight: 500; letter-spacing: 0.06em; opacity: 0.7; }
+.app-footer .contact { opacity: 0.7; }
+.app-footer .contact strong { font-weight: 600; }
+
+/* Χαμηλές οθόνες (tablet landscape): πιο συμπαγής κεφαλίδα για χώρο γραφής */
+@media (max-height: 700px), (max-width: 600px) {
+  .doc-header { padding: 10px 14px 8px; }
+  .doc-logo { height: 52px; }
+  .doc-brand { font-size: 15px; }
+  .doc-brand-sub { font-size: 8.5px; }
+  .app-footer { padding: 5px 14px 6px; font-size: 10px; }
 }
 
 /* Soft organic backdrop — μεγάλα απαλά «μπαλόνια» σε παστέλ brand tints */

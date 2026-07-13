@@ -31,18 +31,12 @@ function bootstrap() {
   const app = document.getElementById('app');
   clear(app);
 
-  // ── Header ──────────────────────────────────────────────────────────────────
+  // ── Header: το chrome ΣΥΝΟΙΔΑ είναι στατικό στο index.html — εδώ μπαίνει
+  // μόνο το γρανάζι ρυθμίσεων και η έκδοση στο υποσέλιδο.
   const gear = el('button', { class: 'icon-btn gear', 'aria-label': 'Ρυθμίσεις', title: 'Ρυθμίσεις θεραπευτή' }, ['⚙️']);
-  const header = el('header', { class: 'topbar' }, [
-    el('div', { class: 'topbar__title' }, [
-      el('h1', {}, ['Γράφω Γράμματα']),
-      el('span', { class: 'topbar__sub' }, [`ΣΥΝΟΙΔΑ · κλινικό εργαλείο γραφής · έκδ. ${APP_VERSION}`]),
-    ]),
-    el('div', { class: 'topbar__right' }, [
-      gear,
-      el('img', { class: 'brandlogo', src: 'brand_assets/logo/synoida-logo-header.png', alt: 'ΣΥΝΟΙΔΑ' }),
-    ]),
-  ]);
+  document.getElementById('gear-slot')?.appendChild(gear);
+  const versionEl = document.getElementById('app-version');
+  if (versionEl) versionEl.textContent = `έκδ. ${APP_VERSION}`;
 
   // ── Backdrop (soft organic μπαλόνια) ─────────────────────────────────────────
   const backdrop = el('div', { class: 'backdrop', 'aria-hidden': 'true' }, [
@@ -78,7 +72,6 @@ function bootstrap() {
   const stage = el('main', { class: 'stage' }, [rail, el('div', { class: 'paper-wrap' }, [paper])]);
 
   app.appendChild(backdrop);
-  app.appendChild(header);
   app.appendChild(stage);
 
   // ── Σύνδεση engine ───────────────────────────────────────────────────────────
