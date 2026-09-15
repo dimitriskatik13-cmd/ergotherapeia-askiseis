@@ -220,3 +220,6 @@ body.is-home .backdrop {display:none;}
 .menu-start:disabled {opacity:.5;cursor:default;}
 .menu-start:focus-visible {outline:3px solid #225a95;outline-offset:4px;}
 @media(max-width:600px) {.btn.menu-start {font-size:18px;min-height:54px;padding:14px 40px;}}
+
+/* The heading is a screen-reader focus target, not an interactive control. */
+.home-menu h1:focus {outline:none;}
