@@ -10,7 +10,7 @@
   border: none;
   border-radius: var(--r-pill);
   font-weight: 600;
-  font-size: 17px;
+  font-size: 15px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -193,3 +193,9 @@
 /* ── Notes ──────────────────────────────────────────────────────────────────── */
 .hintnote { font-size: 12.5px; line-height: 1.5; color: rgba(88,89,91,.7); margin: calc(var(--s2) * -1) 0 0; }
 .hintnote--muted { color: rgba(88,89,91,.55); margin-top: var(--s4); }
+
+/* Same activity-button typography as Χτίζω πρόταση. Touch targets stay ≥48px. */
+.btn { min-height:48px; border-radius:14px; padding:10px 18px; letter-spacing:.01em; line-height:1.15; }
+@media(min-width:760px) and (max-height:820px) {.btn {font-size:14px;}}
+@media(max-width:919px) {.btn {font-size:13px;}}
+@media(max-width:600px) {.btn {font-size:14px;}}

@@ -8,8 +8,7 @@ export const DEFAULTS = {
   case: 'lower',          // 'lower' | 'upper'
   targetLetters: null,    // null = όλα · αλλιώς πίνακας από chars (ανά case)
   currentChar: 'α',
-  mode: 'trace',          // 'demo' | 'trace' | 'free' | 'fading'
-  helpLevel: 1,           // 1..4 (fading)
+  mode: 'trace',          // 'demo' | 'trace' | 'free'
   strictness: 0.4,        // 0 χαλαρό .. 1 αυστηρό
   penWidth: 0.018,        // normalized base width (παχύ→λεπτό)
   pressure: false,        // απόκριση πίεσης Pencil
@@ -31,6 +30,8 @@ class Store {
       const raw = localStorage.getItem(KEY);
       if (raw) this.data = { ...DEFAULTS, ...JSON.parse(raw) };
     } catch (_) { /* αγνόησε */ }
+    if (this.data.mode === 'fading') this.data.mode = 'trace';
+    delete this.data.helpLevel;
   }
   save() {
     try { localStorage.setItem(KEY, JSON.stringify(this.data)); } catch (_) {}

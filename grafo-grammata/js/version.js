@@ -1,4 +1,2 @@
-// Έκδοση εφαρμογής — εμφανίζεται στον υπότιτλο & στις ρυθμίσεις, ώστε ο
-// θεραπευτής να βλέπει με μια ματιά αν έχει τραβήξει την τελευταία ενημέρωση.
-// ΠΡΟΣΟΧΗ: σε κάθε deploy ανεβαίνει ΜΑΖΙ με το VERSION στο sw.js.
-export const APP_VERSION = 19;
+// Public release, kept in sync with the service-worker cache.
+export const APP_VERSION = 20;

@@ -3,7 +3,7 @@
    φωνήματα ώστε να δουλεύει χωρίς ίντερνετ στο γραφείο.
    ───────────────────────────────────────────────────────────────────────────── */
 // Ανεβαίνει ΜΑΖΙ με το APP_VERSION στο js/version.js σε κάθε deploy.
-const VERSION = 'grafo-v19';
+const VERSION = 'grafo-v20';
 const CACHE = `synoida-${VERSION}`;
 
 const PHONEMES = ['a','e','i','o','v','gh','dh','z','th','k','l','m','n','ks','p','r','s','t','f','kh','ps'];
@@ -19,9 +19,9 @@ const ASSETS = [
   'js/engine/tracer.js', 'js/engine/animator.js', 'js/engine/guide.js',
   'js/letters/_dsl.js', 'js/letters/lower.js', 'js/letters/upper.js', 'js/letters/numbers.js', 'js/letters/index.js',
   'js/ui/dom.js', 'js/ui/settings.js', 'js/ui/approval.js',
-  'brand_assets/fonts/Comfortaa-Variable.ttf', 'brand_assets/fonts/Inter-Variable.ttf',
-  'brand_assets/logo/synoida-logo-header.png', 'brand_assets/logo/synoida-icon-pwa.png',
-  ...PHONEMES.map((p) => `sounds/${p}.mp3`),
+  'brand_assets/fonts/Comfortaa.woff2', 'brand_assets/fonts/Inter.woff2',
+  'brand_assets/logo/synoida-logo.webp', 'brand_assets/logo/synoida-icon-pwa.png',
+  ...PHONEMES.map((p) => `sounds/${p}.wav`),
   ...NUMBER_SOUNDS,
 ];
 
@@ -39,7 +39,7 @@ self.addEventListener('install', (e) => {
 self.addEventListener('activate', (e) => {
   e.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k))))
+      .then((keys) => Promise.all(keys.filter((k) => k.startsWith('synoida-grafo-') && k !== CACHE).map((k) => caches.delete(k))))
       .then(() => self.clients.claim())
   );
 });

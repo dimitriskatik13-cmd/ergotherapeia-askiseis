@@ -6,7 +6,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { pathLength } from '../letters/_dsl.js';
 
-const SAMPLES = 44;
+const SAMPLES = 120;
 
 function resample(points, n) {
   const total = pathLength(points);
@@ -36,140 +36,164 @@ export class Tracer {
     this.setStrictness(strictness);
     this.reset();
   }
-
   setStrictness(s) {
     s = Math.max(0, Math.min(1, s));
-    this.tol = 0.115 - 0.070 * s;       // χαλαρό 0.115 → αυστηρό 0.045
-    this.coverNeed = 0.66 + 0.28 * s;   // χαλαρό 0.66 → αυστηρό 0.94 (πιο ακριβές)
+    this.tol = 0.135 - 0.075 * s;
+    this.endFraction = 0.84 + 0.12 * s;
+    this.maxTravelRatio = 2.8 - 0.8 * s;
+    this.coverNeed = 0.66 + 0.28 * s;
   }
-
-  /** Ελάχιστη ανοχή σε normalized μονάδες — ώστε στα ΜΙΚΡΑ μεγέθη γράμματος η
-   *  ανοχή να μην πέφτει κάτω από λίγα pixels (φυσικό όριο δαχτύλου/Pencil). */
   setToleranceFloor(f) { this.tolFloor = Math.max(0, f || 0); }
-
   _tol() { return Math.max(this.tol, this.tolFloor || 0); }
-
+  _startTol() { return Math.min(0.14, Math.max(this._tol(), 0.075)); }
   reset() {
     this.active = 0;
     this.covered = this.samples.map((arr) => new Array(arr.length).fill(false));
+    this.progress = this.samples.map(() => -1);
+    this.lastAccepted = this.samples.map(() => null);
+    this.travel = this.samples.map(() => 0);
+    this.travelPoint = this.samples.map(() => null);
     this.done = false;
     this.touchStartIdx = null;
+    this.touchAllowed = false;
+    this.issue = null;
+    this.awaitStart = true;
+    this.lastPointer = null;
   }
-
-  /** Στιγμιότυπο κατάστασης — για αναίρεση τυχαίας πινελιάς (π.χ. παλάμη). */
   snapshot() {
     return {
-      active: this.active,
-      done: this.done,
-      touchStartIdx: this.touchStartIdx,
-      covered: this.covered.map((c) => c.slice()),
+      active: this.active, done: this.done, touchStartIdx: this.touchStartIdx,
+      touchAllowed: this.touchAllowed, issue: this.issue, awaitStart: this.awaitStart,
+      lastPointer: this.lastPointer ? {...this.lastPointer} : null,
+      lastAccepted: this.lastAccepted.map(p=>p ? {...p} : null),
+      travel: this.travel.slice(), travelPoint: this.travelPoint.map(p=>p ? {...p} : null),
+      progress: this.progress.slice(), covered: this.covered.map((c) => c.slice()),
     };
   }
-
   restore(s) {
     if (!s) return;
-    this.active = s.active;
-    this.done = s.done;
-    this.touchStartIdx = s.touchStartIdx;
-    this.covered = s.covered.map((c) => c.slice());
+    this.active = s.active; this.done = s.done; this.touchStartIdx = s.touchStartIdx;
+    this.touchAllowed = s.touchAllowed; this.issue = s.issue; this.awaitStart = s.awaitStart;
+    this.lastPointer = s.lastPointer ? {...s.lastPointer} : null;
+    this.lastAccepted = s.lastAccepted.map(p=>p ? {...p} : null);
+    this.travel = s.travel.slice(); this.travelPoint = s.travelPoint.map(p=>p ? {...p} : null);
+    this.progress = s.progress.slice(); this.covered = s.covered.map((c) => c.slice());
   }
-
   get totalStrokes() { return this.samples.length; }
-
-  _nearest(stroke, pt) {
-    let best = -1, bestD = Infinity;
-    for (let i = 0; i < stroke.length; i++) {
-      const d = Math.hypot(stroke[i].x - pt.x, stroke[i].y - pt.y);
-      if (d < bestD) { bestD = d; best = i; }
-    }
-    return { idx: best, dist: bestD };
+  coverage(i) { return this.covered[i].filter(Boolean).length / this.covered[i].length; }
+  _dist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+  _hint(type) {
+    return { type, msg: type === 'direction'
+      ? 'Πάμε ξανά προς το βελάκι 🙂'
+      : `Ξεκίνα από το ${this.active + 1} 👆` };
   }
-
-  coverage(strokeIdx) {
-    const c = this.covered[strokeIdx];
-    let n = 0;
-    for (const v of c) if (v) n++;
-    return n / c.length;
-  }
-
-  /** Έναρξη μιας πινελιάς του παιδιού. Επιστρέφει απαλή υπόδειξη (ή null). */
   beginTouch(pt) {
     if (this.done) return null;
-    const tol = this._tol();
-    const stroke = this.samples[this.active];
-    const { idx, dist } = this._nearest(stroke, pt);
-    this.touchStartIdx = idx;
-    if (dist > tol * 2.2) {
-      return { type: 'offpath', msg: 'Ξεκίνα πάνω στη γραμμή 🙂' };
+    this.issue = null; this.touchAllowed = false; this.lastPointer = {...pt};
+    const i = this.active, st = this.samples[i], p = this.progress[i];
+    this.travelPoint[i] = {...pt};
+    // Resume wins at self-intersections: the same position can be both the
+    // original start and an intermediate point of a continuous beta/loop.
+    const mustRestart = this.travel[i] > pathLength(st) * this.maxTravelRatio;
+    if (!mustRestart && p > 3 && this._dist(pt, st[p]) <= this._startTol()) {
+      this.awaitStart = false; this.touchAllowed = true; this.touchStartIdx = p;
+      return null;
     }
-    const startCovered = this.covered[this.active][0];
-    // Αν ξεκίνησε κοντά στο ΤΕΛΟΣ ενώ η αρχή ① δεν έχει καλυφθεί → απαλή υπόδειξη
-    if (!startCovered && idx > stroke.length * 0.6) {
-      return { type: 'wrongstart', msg: 'Ξεκίνα από το ① 👆' };
+    if (this._dist(pt, st[0]) <= this._startTol()) {
+      this.progress[i] = 0; this.travel[i] = 0; this.covered[i].fill(false); this.covered[i][0] = true;
+      this.awaitStart = false; this.touchAllowed = true; this.touchStartIdx = 0;
+      return null;
     }
-    return null;
+    if (p >= 0 && this._dist(pt, st[p]) <= this._startTol()) {
+      this.awaitStart = false; this.touchAllowed = true; this.touchStartIdx = p;
+      return null;
+    }
+    // A stroke may approach the start from its numbered badge. Arm on entering
+    // the true start instead of discarding the entire pointer gesture.
+    this.touchAllowed = true; this.awaitStart = true;
+    this.touchStartIdx = null; this.issue = 'wrongstart';
+    return this._hint('wrongstart');
   }
-
-  /** Τροφοδότηση σημείων (normalized) κατά τη γραφή. */
   feed(points) {
-    if (this.done) return null;
-    const tol = this._tol();
-    const stroke = this.samples[this.active];
-    const cov = this.covered[this.active];
+    if (this.done || !this.touchAllowed) return null;
+    // Browsers may deliver sparse pointer events. Interpolate the actual
+    // straight pointer segment, never the target curve, to preserve that motion.
+    const dense = [];
     for (const pt of points) {
-      const { idx, dist } = this._nearest(stroke, pt);
-      if (dist <= tol) {
-        cov[idx] = true;
-        // απαλό «πάχος» κάλυψης: μάρκαρε και τους άμεσους γείτονες
-        if (idx > 0 && dist <= tol * 0.85) cov[idx - 1] = true;
-        if (idx < cov.length - 1 && dist <= tol * 0.85) cov[idx + 1] = true;
+      const a = this.lastPointer || pt;
+      const count = Math.max(1, Math.min(512, Math.ceil(this._dist(a,pt) / 0.003)));
+      for (let k=1;k<=count;k++) dense.push({x:a.x+(pt.x-a.x)*k/count,y:a.y+(pt.y-a.y)*k/count});
+      this.lastPointer = {...pt};
+    }
+    for (const pt of dense) {
+      const i = this.active, st = this.samples[i], n = st.length;
+      if (this.awaitStart) {
+        // Consecutive strokes can be connected, but the next actual start must be reached.
+        if (this._dist(pt, st[0]) > this._startTol()) continue;
+        this.progress[i] = 0; this.travel[i] = 0; this.travelPoint[i] = {...pt}; this.covered[i].fill(false); this.covered[i][0] = true; this.awaitStart = false; this.issue = null;
+      }
+      if (this.travelPoint[i]) this.travel[i] += this._dist(this.travelPoint[i],pt);
+      this.travelPoint[i] = {...pt};
+      const p = this.progress[i];
+      // A bounded forward window disambiguates loops/crossings and prevents
+      // jumping from the start of a closed curve straight to its coincident end.
+      let best = p, bestD = Infinity;
+      const lo = Math.max(0, p - 6), hi = Math.min(n - 1, p + 18);
+      for (let k = lo; k <= hi; k++) {
+        const d = this._dist(pt, st[k]);
+        if (d < bestD) { bestD = d; best = k; }
+      }
+      if (bestD > this._tol()) continue;
+      if (best < p - 5) {
+        // Small corrections are tolerated; a sustained reversal earns no progress.
+        this.issue = 'direction';
+        continue;
+      }
+      if (best > p) {
+        // Require the intervening path to stay near this pointer segment.
+        // This also avoids accepting shortcuts across a tight corner.
+        const a = st[p], dx = pt.x-a.x, dy = pt.y-a.y, den = dx*dx+dy*dy;
+        let follows = true;
+        for (let k = p+1; k < best; k++) {
+          const t = den ? Math.max(0, Math.min(1, ((st[k].x-a.x)*dx+(st[k].y-a.y)*dy)/den)) : 0;
+          if (this._dist(st[k], {x:a.x+t*dx,y:a.y+t*dy}) > this._tol()) follows = false;
+        }
+        if (!follows) continue;
+        for (let k = p; k <= best; k++) this.covered[i][k] = true;
+        this.progress[i] = best;
+      }
+      this.lastAccepted[i] = {...pt};
+      if (this._strokeDone(i) && i < this.samples.length - 1) {
+        this.active += 1; this.awaitStart = true; this.touchStartIdx = null;
       }
     }
-    // Αν το τρέχον stroke ολοκληρώθηκε ΚΑΤΑ τη διάρκεια της κίνησης, προχώρησε
-    // στο επόμενο — έτσι το παιδί μπορεί να γράψει π.χ. το η με ΜΙΑ συνεχόμενη
-    // κίνηση (①→②) χωρίς να σηκώσει το χέρι. Η ολοκλήρωση ΤΟΥ ΓΡΑΜΜΑΤΟΣ όμως
-    // κρίνεται ΜΟΝΟ στο σήκωμα (endTouch) — ποτέ ήχος/εφέ ενώ ακόμα γράφει.
-    while (!this.done && this.active < this.samples.length - 1 && this._strokeDone(this.active)) {
-      this.active += 1;
-      this.touchStartIdx = null;   // η αφή δεν «ξεκίνησε» σε αυτό το stroke
-    }
     return null;
   }
-
-  /** Ένα stroke θεωρείται «τελειωμένο» μόνο αν: επαρκής κάλυψη ΚΑΙ ξεκίνησε
-   *  από την αρχή ① ΚΑΙ έφτασε ΩΣ ΤΟ ΤΕΛΟΣ της γραμμής. */
   _strokeDone(i) {
-    const cov = this.covered[i];
-    const n = cov.length;
-    const startOk = cov[0] || cov[1] || cov[2];
-    const endOk = cov[n - 1] || cov[n - 2] || cov[n - 3];
-    return startOk && endOk && this.coverage(i) >= this.coverNeed;
+    const st=this.samples[i], last=this.lastAccepted[i];
+    // Accept a small natural finishing gap. The slider now affects completion,
+    // while ordered progression and proximity to the correct end are still required.
+    return this.progress[i] >= Math.ceil((st.length - 1) * this.endFraction)
+      && this.covered[i][0] && this.coverage(i) >= this.coverNeed
+      && this.travel[i] <= pathLength(st) * this.maxTravelRatio
+      && last && this._dist(last,st.at(-1)) <= Math.max(this._tol() * 0.85,0.055);
   }
-
-  /** Τέλος πινελιάς (σήκωμα χεριού) — ΕΔΩ μόνο κρίνεται η ολοκλήρωση. */
   endTouch() {
     if (this.done) return null;
+    this.touchAllowed = false;
     if (this._strokeDone(this.active)) {
-      if (this.active >= this.samples.length - 1) {
+      if (this.active === this.samples.length - 1) {
         this.done = true;
-        return { type: 'complete' };
+        return {type:'complete'};
       }
-      this.active += 1;
-      this.touchStartIdx = null;
-      return { type: 'stroke-done', next: this.active };
+      this.active += 1; this.awaitStart = true;
+      return {type:'stroke-done',next:this.active};
     }
-    // Αν η αφή ΔΕΝ ξεκίνησε σε αυτό το stroke (συνεχόμενη κίνηση που πέρασε ήδη
-    // στο επόμενο), μην δίνεις υποδείξεις — το παιδί απλώς σήκωσε το χέρι.
-    if (this.touchStartIdx === null) return null;
-    // Απαλές, μη τιμωρητικές υποδείξεις
-    const cov = this.covered[this.active];
-    const cv = this.coverage(this.active);
-    if (cv >= this.coverNeed && !(cov[0] || cov[1])) {
-      return { type: 'wrongstart', msg: 'Ξεκίνα από το ① 👆' };
+    if (this.travel[this.active] > pathLength(this.samples[this.active]) * this.maxTravelRatio) {
+      return {type:'shape',msg:'Πάμε ξανά κοντά στο σχήμα του γράμματος 🙂'};
     }
-    if (cv > 0.18) {
-      return { type: 'partial', msg: 'Ακολούθησε όλη τη γραμμή ως το τέλος 👍' };
-    }
-    return null;
+    if (this.issue) return this._hint(this.issue);
+    if (this.awaitStart) return null;
+    return {type:'partial',msg:'Συνέχισε προς το βελάκι μέχρι το τέλος 🙂'};
   }
 }

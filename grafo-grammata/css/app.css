@@ -75,27 +75,28 @@ body.hand-left .stage { flex-direction: row-reverse; }
 .hint.is-visible { opacity: 1; transform: translate(-50%, 0); }
 
 /* ── Rail controls ──────────────────────────────────────────────────────────── */
+/* Fixed touch targets and a shrinkable centre keep both arrows visible on iPad landscape. */
 .rail__letterrow {
-  display: flex;
+  display: grid;
+  grid-template-columns: 48px minmax(0, 1fr) 48px;
   align-items: center;
-  justify-content: space-between;
-  gap: var(--s2);
+  gap: 4px;
   background: var(--paper);
   border-radius: var(--r-card);
   box-shadow: var(--shadow-soft);
-  padding: var(--s2) var(--s3);
+  padding: var(--s2) 8px;
 }
 .rail__char {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: clamp(48px, 7vw, 76px);
+  font-size: clamp(48px, 5vw, 64px);
   line-height: 1;
   color: var(--grey);
-  min-width: 1.4em;
+  min-width: 0;
   text-align: center;
 }
 .navbtn {
-  width: var(--tap);
+  width: 48px;
   height: var(--tap);
   border-radius: var(--r-pill);
   border: none;
@@ -109,14 +110,14 @@ body.hand-left .stage { flex-direction: row-reverse; }
 
 .rail__modes { display: flex; flex-direction: column; gap: var(--s1); }
 .modebtn {
-  min-height: var(--tap);
-  border-radius: var(--r-pill);
+  min-height: 58px;
+  border-radius: 14px;
   border: 1.5px solid transparent;
   background: var(--paper);
   box-shadow: var(--shadow-soft);
   color: var(--grey);
   font-weight: 600;
-  font-size: 17px;
+  font-size: 20px;
 }
 .modebtn.is-active {
   background: var(--blue-08);
@@ -189,3 +190,33 @@ body.hand-left .stage { flex-direction: row-reverse; }
   .rail__actions { flex: 1 1 100%; flex-direction: row; flex-wrap: wrap; margin-top: 0; }
   .rail__actions .btn { flex: 1 1 40%; }
 }
+
+@media(max-width:600px) {.modebtn {font-size:17px;min-height:50px;}}
+
+/* Initial choice and navigation match the other Synoida activities. */
+[hidden] { display:none !important; }
+.icon {width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;}
+.activity-screen {display:flex;flex-direction:column;flex:1;min-height:0;position:relative;z-index:1;}
+.activity-toolbar {display:flex;gap:10px;flex-wrap:wrap;padding:12px 24px 14px;flex-shrink:0;}
+.btn--home {background:var(--green);color:white;}
+.btn--settings {background:var(--red);color:white;}
+.home-menu {position:relative;z-index:1;flex:1;min-height:0;overflow:auto;background:white;text-align:center;padding:32px 22px;}
+.home-menu h1 {font-size:42px;font-weight:600;letter-spacing:-.01em;margin:22px 0 32px;}
+.home-menu__label {font-size:14px;font-weight:600;letter-spacing:.16em;opacity:.6;margin:24px 0 18px;}
+.home-menu__choices {display:flex;flex-wrap:wrap;justify-content:center;gap:16px;}
+.menu-choice {border:2px solid #E5E7EB;border-radius:14px;min-height:58px;min-width:180px;padding:14px 30px;background:white;color:var(--grey);font:600 20px var(--font-ui);box-shadow:0 3px 10px #58595b10;}
+.menu-choice:active {transform:scale(.98);}
+.menu-choice:focus-visible,.activity-toolbar .btn:focus-visible {outline:3px solid #225a95;outline-offset:4px;}
+body.is-home .backdrop {display:none;}
+@media(max-width:600px) {
+ .home-menu {padding:20px 14px;}
+ .home-menu h1 {font-size:30px;}
+ .menu-choice {font-size:17px;min-height:50px;min-width:145px;}
+ .activity-toolbar {padding:10px 24px;}
+}
+
+.menu-choice.is-selected {background:var(--blue);border-color:var(--blue);color:white;box-shadow:0 5px 16px #00aeef30;}
+.btn.menu-start {display:flex;margin:32px auto 0;background:var(--green);color:white;font-size:22px;min-height:58px;padding:16px 56px;box-shadow:0 6px 18px #8dc63f40;}
+.menu-start:disabled {opacity:.5;cursor:default;}
+.menu-start:focus-visible {outline:3px solid #225a95;outline-offset:4px;}
+@media(max-width:600px) {.btn.menu-start {font-size:18px;min-height:54px;padding:14px 40px;}}

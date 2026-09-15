@@ -11,6 +11,7 @@ html {
 
 body {
   font-family: var(--font-ui);
+  font-synthesis: none;
   color: var(--grey);
   background: var(--bg);
   display: flex;
@@ -34,20 +35,7 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
   padding: 0 env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
-/* ==== Κοινό στήσιμο ΣΥΝΟΙΔΑ: λωρίδες, κεφαλίδα εντύπου, υποσέλιδο ==== */
-.brand-strips {
-  display: flex;
-  height: 8px;
-  width: 100%;
-  flex-shrink: 0;
-}
-.brand-strips > div { flex: 1; }
-.brand-strips .s1 { background: var(--green);  }
-.brand-strips .s2 { background: var(--red);    }
-.brand-strips .s3 { background: var(--blue);   }
-.brand-strips .s4 { background: var(--orange); }
-.brand-strips .s5 { background: var(--grey);   }
-
+/* Shared application header and footer. */
 .doc-header {
   display: flex;
   justify-content: space-between;
@@ -84,7 +72,7 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
   letter-spacing: 0.08em;
   color: var(--grey);
   font-weight: 600;
-  line-height: 1.1;
+  line-height: normal;
 }
 .doc-brand-sub {
   font-size: 10px;
@@ -107,8 +95,7 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
   border-top: 1px solid #E5E7EB;
   background: var(--paper);
   color: var(--grey);
-  font-size: 11px;
-  opacity: 0.85;
+  font-size: 12px;
   position: relative;
   z-index: 2;
 }
@@ -117,12 +104,12 @@ button { font-family: inherit; color: inherit; cursor: pointer; }
 .app-footer .contact strong { font-weight: 600; }
 
 /* Χαμηλές οθόνες (tablet landscape): πιο συμπαγής κεφαλίδα για χώρο γραφής */
-@media (max-height: 700px), (max-width: 600px) {
+@media (max-width: 600px) {
   .doc-header { padding: 10px 14px 8px; }
   .doc-logo { height: 52px; }
   .doc-brand { font-size: 15px; }
   .doc-brand-sub { font-size: 8.5px; }
-  .app-footer { padding: 5px 14px 6px; font-size: 10px; }
+  .app-footer { padding: 8px 14px 10px; font-size: 11px; }
 }
 
 /* Soft organic backdrop — μεγάλα απαλά «μπαλόνια» σε παστέλ brand tints */

@@ -1,9 +1,6 @@
-// ─────────────────────────────────────────────────────────────────────────────
-// Phonemes — αναπαραγωγή ΦΩΝΗΜΑΤΟΣ από προ-παραγμένα ΤΟΠΙΚΑ αρχεία (offline).
-// ΟΧΙ live TTS. Ο ήχος είναι ΑΠΟΣΥΝΔΕΔΕΜΕΝΟΣ: παίζει αρχεία από σταθερό φάκελο
-// `sounds/` με σταθερή ονοματολογία (a.mp3, s.mp3, m.mp3 …). Αλλαγή μεθόδου =
-// απλή αντικατάσταση αρχείων, ΚΑΜΙΑ αλλαγή κώδικα.
-// ─────────────────────────────────────────────────────────────────────────────
+// Offline playback: approved phonemes use original PCM WAV files so encoding
+// cannot alter their release/frication. Number recordings remain MP3.
+// Legacy letter dataset names ending in .mp3 are accepted and routed to WAV.
 
 export class Phonemes {
   constructor(basePath = 'sounds/') {
@@ -15,8 +12,8 @@ export class Phonemes {
     this.useWebAudio = typeof (window.AudioContext || window.webkitAudioContext) === 'function';
   }
 
-  _key(name) { return name.replace(/\.mp3$/i, ''); }
-  _url(key) { return `${this.base}${key}.mp3`; }
+  _key(name) { return name.replace(/\.(?:mp3|wav)$/i, ''); }
+  _url(key) { return `${this.base}${key}.${/^num-\d+$/.test(key) ? 'mp3' : 'wav'}`; }
 
   /** Αρχικοποίηση AudioContext — απαιτεί χειρονομία χρήστη (π.χ. το ✓). */
   unlock() {
@@ -73,10 +70,11 @@ export class Phonemes {
         const src = this.ctx.createBufferSource();
         src.buffer = buf;
         const gain = this.ctx.createGain();
-        // Απαλό «φάκελος» έντασης: μικρό attack & release ώστε να μην ακούγεται απότομο.
+        // Τα αρχεία έχουν ήδη ομαλά άκρα. Μόνο 2/4ms προστασία από clicks,
+        // ώστε να διατηρείται η εγκεκριμένη αρχή των σύντομων συμφώνων.
         const t0 = this.ctx.currentTime;
         const dur = buf.duration;
-        const atk = 0.025, rel = Math.min(0.06, dur * 0.4);
+        const atk = 0.002, rel = Math.min(0.004, dur * 0.1);
         gain.gain.setValueAtTime(0.0001, t0);
         gain.gain.linearRampToValueAtTime(1.0, t0 + atk);
         gain.gain.setValueAtTime(1.0, t0 + Math.max(atk, dur - rel));

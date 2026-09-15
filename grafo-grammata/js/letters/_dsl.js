@@ -1,8 +1,9 @@
 // ─────────────────────────────────────────────────────────────────────────────
 // ΣΥΝΟΙΔΑ · «Γράφω Γράμματα» — Geometry DSL για τα ίχνη (strokes) των γραμμάτων
 //
-// Όλες οι συντεταγμένες είναι normalized 0..1 μέσα σε τετράγωνο πεδίο, με y προς
-// τα ΚΑΤΩ (όπως ο καμβάς). Κάθε γράμμα ορίζεται ως πίνακας από strokes· κάθε
+// Οι συντεταγμένες αναφέρονται σε μοναδιαίο τετράγωνο πεδίο, με y προς
+// τα ΚΑΤΩ (όπως ο καμβάς). Μεγάλες κάτω προεκτάσεις μπορούν να ξεπερνούν το 1
+// και οι renderers διατηρούν ολόκληρο το περιεχόμενο ορατό. Κάθε γράμμα ορίζεται ως πίνακας από strokes· κάθε
 // stroke είναι μια διαδρομή σημείων με τη ΣΩΣΤΗ ΦΟΡΑ (πρώτο σημείο = αφετηρία ①).
 //
 // Οι βοηθητικές συναρτήσεις παράγουν πυκνά δείγματα σημείων ώστε η ιχνηλάτηση,
@@ -90,8 +91,8 @@ export function chain(...parts) {
 }
 
 /** Δομή ενός stroke. order ξεκινά από 1. */
-export function stroke(order, points, { arrow = true, startLabel = null } = {}) {
-  return { order, points, arrow, startLabel: startLabel ?? String(order) };
+export function stroke(order, points, { arrow = true, startLabel = null, arrowFractions = null } = {}) {
+  return { order, points, arrow, arrowFractions, startLabel: startLabel ?? String(order) };
 }
 
 /** Συνολικό μήκος μιας διαδρομής σημείων (normalized μονάδες). */

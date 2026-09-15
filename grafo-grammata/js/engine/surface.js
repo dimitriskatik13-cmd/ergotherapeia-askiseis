@@ -20,6 +20,7 @@ export class Surface {
     this.w = 0; this.h = 0;
     this.map = null;
     this.padRatio = 0.08;
+    this.contentBottom = 1;
     this._onResize = null;
     this._ro = new ResizeObserver(() => this.resize());
     this._ro.observe(this.el);
@@ -28,6 +29,8 @@ export class Surface {
 
   setPadRatio(p) { this.padRatio = p; this._recomputeMap(); }
 
+  setContentBottom(bottom) { this.contentBottom = Math.max(1, bottom); this._recomputeMap(); }
+
   _recomputeMap() {
     if (!(this.w > 0 && this.h > 0)) return;
     const minWH = Math.min(this.w, this.h);
@@ -35,6 +38,7 @@ export class Surface {
     // με απόλυτο ελάχιστο ώστε το μικρότερο γράμμα ≈ κανονικό γράμμα τετραδίου Α5.
     let side = (1 - 2 * this.padRatio) * minWH;
     side = Math.max(56, Math.min(side, minWH * 0.96));
+    if (this.contentBottom > 1) side = Math.min(side, this.h * 0.94 / (2 * (this.contentBottom - 0.5)));
     // Οι γραμμές τετραδίου ακολουθούν το γράμμα, αλλά «παγώνουν» σε ρεαλιστικό
     // ελάχιστο (σαν χάρακα τετραδίου). Έτσι στα μικρά μεγέθη το γράμμα ΔΕΝ γεμίζει
     // όλη τη γραμμή — στο ελάχιστο φτάνει περίπου ως τη μέση της.

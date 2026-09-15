@@ -63,9 +63,9 @@ export function buildSettings({ store, onOpenApproval }) {
       el('button', { class: 'icon-btn', 'aria-label': 'Κλείσιμο', onclick: () => close() }, ['✕']),
     ]));
 
-    // Πεζά / Κεφαλαία / Αριθμοί
-    inner.appendChild(segmented('Σετ',
-      [{ label: 'Πεζά', value: 'lower' }, { label: 'Κεφαλαία', value: 'upper' }, { label: 'Αριθμοί 0–31', value: 'numbers' }],
+    // The home menu selects letters or numbers; letter settings select case.
+    if (s.case !== 'numbers') inner.appendChild(segmented('Σετ',
+      [{ label: 'Πεζά', value: 'lower' }, { label: 'Κεφαλαία', value: 'upper' }],
       () => store.get('case'),
       (v) => {
         if (v === store.get('case')) return;
@@ -76,15 +76,6 @@ export function buildSettings({ store, onOpenApproval }) {
 
     // Στοχευμένα γράμματα
     inner.appendChild(buildLetterChips(store));
-
-    // Τρόπος βοήθειας (fading level)
-    inner.appendChild(segmented('Επίπεδο βοήθειας (Σταδιακή)',
-      [1, 2, 3, 4].map((n) => ({ label: String(n), value: n })),
-      () => store.get('helpLevel'),
-      (v) => store.set('helpLevel', v)));
-    inner.appendChild(el('p', { class: 'hintnote' }, [
-      'Επ.1: οδηγός+αριθμοί+βέλη · Επ.2: −βέλη · Επ.3: μόνο σημεία έναρξης · Επ.4: χωρίς οδηγό',
-    ]));
 
     // Αυστηρότητα
     inner.appendChild(slider('Αυστηρότητα ελέγχου', 'Χαλαρό', 'Αυστηρό',

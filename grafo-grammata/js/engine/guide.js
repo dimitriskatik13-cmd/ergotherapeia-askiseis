@@ -13,9 +13,10 @@ import { pointAtFraction, pathLength } from '../letters/_dsl.js';
  * Αντιστοίχιση normalized πεδίου [0,1]² σε pixels του canvas (τετράγωνο,
  * κεντραρισμένο, με padding). Επιστρέφει συναρτήσεις tx/ty και την κλίμακα.
  */
-export function fieldMap(w, h, padRatio = 0.08) {
+export function fieldMap(w, h, padRatio = 0.08, contentBottom = 1) {
   const pad = Math.min(w, h) * padRatio;
-  const side = Math.min(w, h) - 2 * pad;
+  let side = Math.min(w, h) - 2 * pad;
+  if (contentBottom > 1) side = Math.min(side, h * 0.94 / (2 * (contentBottom - 0.5)));
   const ox = (w - side) / 2;
   const oy = (h - side) / 2;
   return {
@@ -24,6 +25,11 @@ export function fieldMap(w, h, padRatio = 0.08) {
     ty: (y) => oy + y * side,
     s: (v) => v * side,
   };
+}
+
+/** Includes pen clearance for a descender extending below the unit field. */
+export function letterContentBottom(letter) {
+  return Math.max(1, ...letter.strokes.flatMap(st => st.points.map(p => p.y + 0.03)));
 }
 
 /** Επίπεδο βοήθειας → σημαίες εμφάνισης (Ενότητα 3 του spec). */
@@ -64,7 +70,7 @@ export function drawNotebookLines(ctx, w, h, map, zones, type = 'double') {
 }
 
 /** Αχνό γράμμα-οδηγό (παχιά απαλή διαδρομή). */
-export function drawGuideLetter(ctx, letter, map, { color = PALETTE.grey, alpha = 0.18, width = 0.085 } = {}) {
+export function drawGuideLetter(ctx, letter, map, { color = PALETTE.grey, alpha = 0.18, width = 0.045 } = {}) {
   ctx.save();
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';
@@ -93,17 +99,21 @@ export function drawStartNumbers(ctx, letter, map, { radius = 0.045, fontRatio =
   // απομακρύνουμε ελαφρώς το badge ώστε να φαίνονται και τα δύο.
   const placed = [];
   const spots = letter.strokes.map((st) => ({ x: map.tx(st.points[0].x), y: map.ty(st.points[0].y) }));
+  const offsets = [[-1.6,-1.7],[1.6,-1.7],[-2.3,0],[2.3,0],[0,-3.2],[-2.2,2.0],[2.2,2.0]];
   spots.forEach((sp) => {
-    let { x, y } = sp;
-    for (let guard = 0; guard < 8; guard++) {
-      const hit = placed.find((q) => Math.hypot(q.x - x, q.y - y) < r * 2.1);
-      if (!hit) break;
-      const dx = x - hit.x, dy = y - hit.y;
-      const d = Math.hypot(dx, dy) || 1;
-      x = hit.x + (dx / d) * r * 2.15;
-      y = hit.y + (dy / d) * r * 2.15 + r * 0.2;
+    let choice;
+    for (const [dx,dy] of offsets) {
+      const q = {x:sp.x+dx*r, y:sp.y+dy*r};
+      if (!placed.some(p => Math.hypot(p.x-q.x,p.y-q.y) < r*2.15)) { choice=q; break; }
     }
-    placed.push({ x, y });
+    placed.push(choice || {x:sp.x+3*r,y:sp.y-3*r});
+  });
+  // Every displaced badge is linked to a dot at the TRUE stroke start.
+  spots.forEach((sp,idx) => {
+    const q=placed[idx], col=STROKE_COLORS[idx % STROKE_COLORS.length];
+    ctx.strokeStyle=col; ctx.lineWidth=Math.max(1,map.s(0.003));
+    ctx.beginPath();ctx.moveTo(sp.x,sp.y);ctx.lineTo(q.x,q.y);ctx.stroke();
+    ctx.fillStyle=col;ctx.beginPath();ctx.arc(sp.x,sp.y,Math.max(1.7,map.s(0.009)),0,Math.PI*2);ctx.fill();
   });
   letter.strokes.forEach((st, idx) => {
     const X = placed[idx].x, Y = placed[idx].y;
@@ -125,7 +135,7 @@ export function drawStartNumbers(ctx, letter, map, { radius = 0.045, fontRatio =
 
 /**
  * Βέλη κατεύθυνσης κατά μήκος των strokes — μεγάλα, με «κοντάρι» (σαν →) και
- * πλήθος ανάλογο του μήκους (μικρή γραμμή → 1 βέλος, μεγάλη → έως 3).
+ * πλήθος ανάλογο του μήκους (μικρή γραμμή → 1 βέλος, μεγάλη → έως 6).
  */
 export function drawArrows(ctx, letter, map, { size = 0.04, spacing = 0.22 } = {}) {
   ctx.save();
@@ -136,9 +146,10 @@ export function drawArrows(ctx, letter, map, { size = 0.04, spacing = 0.22 } = {
   letter.strokes.forEach((st, idx) => {
     const col = STROKE_COLORS[idx % STROKE_COLORS.length];
     const L = pathLength(st.points);
-    const n = tiny ? 1 : Math.max(1, Math.min(3, Math.round(L / spacing)));
-    for (let i = 0; i < n; i++) {
-      const f = (i + 1) / (n + 1);
+    if (st.arrow === false) return;
+    const n = tiny ? 1 : Math.max(1, Math.min(6, Math.round(L / spacing)));
+    const fractions = st.arrowFractions || Array.from({length:n}, (_,i)=>(i+1)/(n+1));
+    for (const f of fractions) {
       const { x, y, angle } = pointAtFraction(st.points, f);
       drawArrow(ctx, map.tx(x), map.ty(y), angle, px, col);
     }

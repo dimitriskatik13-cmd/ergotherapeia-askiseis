@@ -38,13 +38,19 @@ export class InputController {
     el.addEventListener('pointerup', (e) => this._handleUp(e, false));
     el.addEventListener('pointercancel', (e) => this._handleUp(e, true));
     el.addEventListener('pointerleave', (e) => this._handleUp(e, false));
+    el.addEventListener('lostpointercapture', (e) => this._handleUp(e, true));
     // Επιπλέον φραγμοί scroll/zoom στο ίδιο το στοιχείο.
     el.addEventListener('touchstart', (e) => { if (this.enabled) e.preventDefault(); }, { passive: false });
     el.addEventListener('touchmove', (e) => { if (this.enabled) e.preventDefault(); }, { passive: false });
   }
 
   enable() { this.enabled = true; }
-  disable() { this.enabled = false; this.activeId = null; this.activeType = null; }
+  disable() {
+    this.enabled = false;
+    const id=this.activeId;
+    this.activeId=null; this.activeType=null;
+    if (id!==null) { try {this.surface.el.releasePointerCapture(id);} catch (_) {} }
+  }
   setPenOnly(v) { this.penOnly = !!v; }
 
   _pt(e) {
@@ -66,14 +72,16 @@ export class InputController {
 
   _handleDown(e) {
     if (!this.enabled) return;
+    if (this.penOnly && e.pointerType !== 'pen') { e.preventDefault(); return; }
     if (e.pointerType === 'pen') this.lastPenTs = Date.now();
     e.preventDefault();
     if (this.activeId !== null) {
       // Προτεραιότητα Pencil: ακύρωσε την πινελιά της παλάμης και πάρε τον έλεγχο.
       if (e.pointerType === 'pen' && this.activeType === 'touch') {
-        try { this.surface.el.releasePointerCapture(this.activeId); } catch (_) {}
+        const oldId = this.activeId;
         this.activeId = null;
         this.activeType = null;
+        try { this.surface.el.releasePointerCapture(oldId); } catch (_) {}
         if (this.h.onCancel) this.h.onCancel();
       } else {
         return; // δεύτερη ταυτόχρονη επαφή — αγνόησε
@@ -103,13 +111,15 @@ export class InputController {
   }
 
   _handleUp(e, cancelled) {
-    // το σήκωμα του Pencil μετράει ως «πρόσφατη χρήση» (sticky από το τέλος της πινελιάς)
-    if (e.pointerType === 'pen') this.lastPenTs = Date.now();
+    // Ignore hover exits and stale events. Only real active contact refreshes palm rejection.
     if (e.pointerId !== this.activeId) return;
+    if (this.activeType === 'pen') this.lastPenTs = Date.now();
     e.preventDefault();
-    try { this.surface.el.releasePointerCapture(e.pointerId); } catch (_) {}
+    const id = this.activeId;
+    // Clear state BEFORE releasePointerCapture, which can dispatch lost capture.
     this.activeId = null;
     this.activeType = null;
+    try { this.surface.el.releasePointerCapture(id); } catch (_) {}
     if (cancelled) {
       if (this.h.onCancel) this.h.onCancel();
     } else if (this.h.onUp) {

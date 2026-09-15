@@ -5,7 +5,7 @@
 // ─────────────────────────────────────────────────────────────────────────────
 import { el, clear } from './dom.js';
 import { lettersByCase } from '../letters/index.js';
-import { renderGuide, fieldMap } from '../engine/guide.js';
+import { renderGuide, fieldMap, letterContentBottom } from '../engine/guide.js';
 
 export function buildApproval(store) {
   const overlay = el('div', { class: 'approval', 'aria-hidden': 'true' });
@@ -23,7 +23,7 @@ export function buildApproval(store) {
     cv.style.width = SIZE + 'px'; cv.style.height = SIZE + 'px';
     const ctx = cv.getContext('2d');
     ctx.scale(dpr, dpr);
-    const map = fieldMap(SIZE, SIZE, 0.11);
+    const map = fieldMap(SIZE, SIZE, 0.11, letterContentBottom(letter));
     renderGuide(ctx, SIZE, SIZE, letter, {
       map, lines: 'double',
       force: { guide: true, numbers: true, arrows: true },

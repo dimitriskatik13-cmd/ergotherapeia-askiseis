@@ -3,23 +3,9 @@
    Παλέτα ΜΟΝΟ brand · γραμματοσειρές self-hosted (offline) · spacing scale.
    ───────────────────────────────────────────────────────────────────────────── */
 
-/* Self-hosted variable fonts — ΟΧΙ Google Fonts CDN (σπάει το offline) */
-@font-face {
-  font-family: 'Comfortaa';
-  src: url('../brand_assets/fonts/Comfortaa-Variable.ttf') format('truetype-variations'),
-       url('../brand_assets/fonts/Comfortaa-Variable.ttf') format('truetype');
-  font-weight: 300 700;
-  font-style: normal;
-  font-display: swap;
-}
-@font-face {
-  font-family: 'Inter';
-  src: url('../brand_assets/fonts/Inter-Variable.ttf') format('truetype-variations'),
-       url('../brand_assets/fonts/Inter-Variable.ttf') format('truetype');
-  font-weight: 100 900;
-  font-style: normal;
-  font-display: swap;
-}
+/* Exact font files used by Χτίζω πρόταση. */
+@font-face {font-family:'Synoida Inter';src:url('../brand_assets/fonts/Inter.woff2') format('woff2');font-weight:100 900;font-style:normal;font-display:swap;}
+@font-face {font-family:'Synoida Comfortaa';src:url('../brand_assets/fonts/Comfortaa.woff2') format('woff2');font-weight:300 700;font-style:normal;font-display:swap;}
 
 :root {
   /* Παλέτα ΣΥΝΟΙΔΑ — ΜΟΝΟ αυτά τα χρώματα */
@@ -40,8 +26,8 @@
   --grey-12:  rgba(88, 89, 91, 0.12);
 
   /* Τυπογραφία */
-  --font-display: 'Comfortaa', system-ui, sans-serif;
-  --font-ui: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-display: 'Synoida Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-ui: 'Synoida Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
 
   /* Spacing scale (digital) — ΜΟΝΟ αυτά */
   --s1: 8px;  --s2: 12px; --s3: 16px; --s4: 24px;

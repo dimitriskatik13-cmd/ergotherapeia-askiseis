@@ -26,7 +26,7 @@ export const LETTERS_NUMBERS = NUMBERS.map((d) => build(d, 'numbers'));
 export const ALL_LETTERS = [...LETTERS_LOWER, ...LETTERS_UPPER, ...LETTERS_NUMBERS];
 
 // Κανονική σειρά ελληνικού αλφαβήτου (για ταξινόμηση πάνελ θεραπευτή).
-export const GREEK_ORDER = 'αβγδεζηθικλμνξοπρστυφχψω';
+export const GREEK_ORDER = 'αβγδεζηθικλμνξοπρσςτυφχψω';
 
 export function lettersByCase(letterCase) {
   if (letterCase === 'upper') return LETTERS_UPPER;
