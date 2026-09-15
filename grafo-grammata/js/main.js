@@ -9,7 +9,6 @@ import { buildSettings } from './ui/settings.js';
 import { buildApproval } from './ui/approval.js';
 import { el, clear } from './ui/dom.js';
 import { lettersByCase, findLetter, uniquePhonemeFiles } from './letters/index.js';
-import { APP_VERSION } from './version.js';
 
 const MODES = [
   { value: 'demo', label: 'Δείξε μου' },
@@ -40,8 +39,6 @@ function bootstrap() {
   const homeBtn = el('button', {class:'btn btn--home',type:'button',id:'home-button'}, [icon('ic-home'),'Αρχική']);
   const gear = el('button', {class:'btn btn--settings',type:'button','aria-label':'Ρυθμίσεις'}, [icon('ic-sliders'),'Ρυθμίσεις']);
   const toolbar = el('nav', {class:'activity-toolbar','aria-label':'Πλοήγηση δραστηριότητας'}, [homeBtn,gear]);
-  const versionEl = document.getElementById('app-version');
-  if (versionEl) versionEl.textContent = `έκδ. ${APP_VERSION}`;
 
   // ── Backdrop (soft organic μπαλόνια) ─────────────────────────────────────────
   const backdrop = el('div', { class: 'backdrop', 'aria-hidden': 'true' }, [
