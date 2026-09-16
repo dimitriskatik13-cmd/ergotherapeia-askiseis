@@ -1,5 +1,7 @@
 // Same two-second visual reward as Χτίζω πρόταση, with the completed ink
 // retained on the far right until the next letter or an explicit clear.
+import { drawGuideLetter } from './engine/guide.js';
+
 export class Feedback {
   constructor(surface, hintEl) {
     this.surface = surface;
@@ -23,8 +25,18 @@ export class Feedback {
 
   showCompleted(letter) {
     this._preview?.remove();
-    const source = this.surface.layers.ink;
-    const image = source.getContext('2d').getImageData(0, 0, source.width, source.height);
+    const ink = this.surface.layers.ink;
+    // Compose the original model and the child's ink in the SAME coordinate
+    // system, then crop their union. Never move/scale either layer independently.
+    const source = document.createElement('canvas');
+    source.width = ink.width; source.height = ink.height;
+    const composite = source.getContext('2d');
+    composite.save();
+    composite.scale(this.surface.dpr, this.surface.dpr);
+    drawGuideLetter(composite, letter, this.surface.map);
+    composite.restore();
+    composite.drawImage(ink, 0, 0);
+    const image = composite.getImageData(0, 0, source.width, source.height);
     let left=source.width, top=source.height, right=-1, bottom=-1;
     for (let y=0; y<source.height; y++) for (let x=0; x<source.width; x++) {
       if (!image.data[(y*source.width+x)*4+3]) continue;
@@ -38,19 +50,13 @@ export class Feedback {
       canvas.width=right-left+1; canvas.height=bottom-top+1;
       canvas.getContext('2d').drawImage(source,left,top,canvas.width,canvas.height,0,0,canvas.width,canvas.height);
     } else {
-      // Manual completion in Free mode may have no ink. Display the target.
-      canvas.width=280; canvas.height=360;
-      const points=letter.strokes.flatMap(st=>st.points);
-      const xs=points.map(p=>p.x),ys=points.map(p=>p.y);
-      const minX=Math.min(...xs),maxX=Math.max(...xs),minY=Math.min(...ys),maxY=Math.max(...ys);
-      const scale=Math.min(240/Math.max(.01,maxX-minX),320/Math.max(.01,maxY-minY));
-      const tx=x=>140+(x-(minX+maxX)/2)*scale,ty=y=>180+(y-(minY+maxY)/2)*scale;
-      const ctx=canvas.getContext('2d');ctx.strokeStyle='#3a3f45';ctx.lineWidth=8;ctx.lineCap=ctx.lineJoin='round';
-      for(const stroke of letter.strokes){ctx.beginPath();stroke.points.forEach((p,i)=>i?ctx.lineTo(tx(p.x),ty(p.y)):ctx.moveTo(tx(p.x),ty(p.y)));ctx.stroke();}
+      // A temporarily hidden/resizing surface can be empty. It is redrawn on show.
+      canvas.width = canvas.height = 1;
     }
     const preview = document.createElement('div');
     preview.className='completed-letter';preview.setAttribute('role','img');
     preview.setAttribute('aria-label',`Ολοκληρώθηκε: ${letter.char}`);
+    preview.setAttribute('aria-description','Αρχικό πρότυπο με τη γραφή του παιδιού από πάνω');
     preview.append(canvas);this.surface.el.append(preview);
     this.surface.el.classList.add('has-completion-preview');this._preview=preview;
   }
