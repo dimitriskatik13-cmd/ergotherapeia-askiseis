@@ -153,6 +153,7 @@ export class Session {
         if (!this.completed) this.input.enable();
       }
       this._redrawInk();
+      if (this.completed) this.feedback?.showCompleted?.(this.letter);
     }
   }
 
@@ -279,7 +280,7 @@ export class Session {
   }
 
   _celebrate() {
-    this.feedback.celebrate(this.letter, this.accentFor(this.letter));
+    this.feedback.celebrate(this.letter);
   }
 
   /** Το ΜΟΝΟ σημείο που παίζει φώνημα: το κουμπί 🔊 Φώνημα του θεραπευτή. */

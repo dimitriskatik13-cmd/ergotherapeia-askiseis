@@ -3,7 +3,7 @@
    φωνήματα ώστε να δουλεύει χωρίς ίντερνετ στο γραφείο.
    ───────────────────────────────────────────────────────────────────────────── */
 // Ανεβαίνει ΜΑΖΙ με το APP_VERSION στο js/version.js σε κάθε deploy.
-const VERSION = 'grafo-v24';
+const VERSION = 'grafo-v25';
 const CACHE = `synoida-${VERSION}`;
 
 const PHONEMES = ['a','e','i','o','v','gh','dh','z','th','k','l','m','n','ks','p','r','s','t','f','kh','ps'];
@@ -13,7 +13,7 @@ const ASSETS = [
   './',
   'index.html',
   'manifest.webmanifest',
-  'css/tokens.css', 'css/base.css', 'css/components.css', 'css/app.css',
+  'css/tokens.css', 'css/base.css', 'css/components.css', 'css/app.css', 'css/celebration.css',
   'js/main.js', 'js/state.js', 'js/audio.js', 'js/feedback.js', 'js/session.js', 'js/palette.js', 'js/version.js',
   'js/engine/surface.js', 'js/engine/input.js', 'js/engine/pencil.js',
   'js/engine/tracer.js', 'js/engine/animator.js', 'js/engine/guide.js',
