@@ -38,13 +38,25 @@ export class Tracer {
   }
   setStrictness(s) {
     s = Math.max(0, Math.min(1, s));
+    // User-defined easier zone includes the midpoint. Above 50%, preserve
+    // the previously approved strict criteria exactly.
+    if (s <= 0.5) {
+      const t = s * 2;
+      this.tol = 0.17 - 0.035 * t;
+      this.endFraction = 0.78 + 0.06 * t;
+      this.maxTravelRatio = 3.2 - 0.4 * t;
+      this.coverNeed = 0.60 + 0.06 * t;
+      this.floorMultiplier = 1.2 - 0.2 * t;
+      return;
+    }
+    this.floorMultiplier = 1;
     this.tol = 0.135 - 0.075 * s;
     this.endFraction = 0.84 + 0.12 * s;
     this.maxTravelRatio = 2.8 - 0.8 * s;
     this.coverNeed = 0.66 + 0.28 * s;
   }
   setToleranceFloor(f) { this.tolFloor = Math.max(0, f || 0); }
-  _tol() { return Math.max(this.tol, this.tolFloor || 0); }
+  _tol() { return Math.max(this.tol, (this.tolFloor || 0) * this.floorMultiplier); }
   _startTol() { return Math.min(0.14, Math.max(this._tol(), 0.075)); }
   reset() {
     this.active = 0;
