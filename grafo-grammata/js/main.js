@@ -104,7 +104,7 @@ function bootstrap() {
   // ── Settings panel + Approval ────────────────────────────────────────────────
   const approval = buildApproval(store);
   const settings = buildSettings({ store, onOpenApproval: approval.open });
-  document.body.appendChild(settings.panel);
+  document.body.append(settings.backdrop, settings.panel);
   document.body.appendChild(approval.overlay);
   gear.addEventListener('click', settings.open);
 
@@ -133,6 +133,7 @@ function bootstrap() {
     phonBtn.replaceChildren(icon('ic-speaker'), document.createTextNode(isNumber ? 'Άκουσε' : 'Φώνημα'));
     modeButtons.forEach((m) => m.btn.classList.toggle('is-active', m.value === data.mode));
     replayBtn.style.display = data.mode === 'demo' ? '' : 'none';
+    doneBtn.hidden = data.mode !== 'free';
     doneBtn.classList.toggle('is-done', session.completed);
     document.body.classList.toggle('hand-left', data.hand === 'left');
     const many = activeList(data).length > 1;

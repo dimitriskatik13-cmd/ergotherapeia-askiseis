@@ -50,6 +50,9 @@ function toggle(label, getValue, onToggle) {
 
 export function buildSettings({ store, onOpenApproval }) {
   const panel = el('aside', { class: 'panel', id: 'panel', 'aria-hidden': 'true' });
+  const backdrop = el('button', {class:'settings-backdrop',type:'button','aria-label':'Κλείσιμο ρυθμίσεων',tabindex:'-1'});
+  backdrop.hidden = true;
+  backdrop.addEventListener('click', close);
   const inner = el('div', { class: 'panel__inner' });
   panel.appendChild(inner);
 
@@ -168,9 +171,12 @@ export function buildSettings({ store, onOpenApproval }) {
     return wrap;
   }
 
-  function open() { rebuild(); panel.classList.add('is-open'); panel.setAttribute('aria-hidden', 'false'); }
-  function close() { panel.classList.remove('is-open'); panel.setAttribute('aria-hidden', 'true'); }
+  function open() { rebuild(); backdrop.hidden = false; panel.classList.add('is-open'); panel.setAttribute('aria-hidden', 'false'); }
+  function close() { backdrop.hidden = true; panel.classList.remove('is-open'); panel.setAttribute('aria-hidden', 'true'); }
+  document.addEventListener('keydown', (event) => {
+    if (event.key === 'Escape' && panel.classList.contains('is-open')) close();
+  });
 
   rebuild();
-  return { panel, open, close };
+  return { panel, backdrop, open, close };
 }
