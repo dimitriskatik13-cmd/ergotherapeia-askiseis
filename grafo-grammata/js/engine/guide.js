@@ -148,7 +148,7 @@ export function drawArrows(ctx, letter, map, { size = 0.04, spacing = 0.22 } = {
     const L = pathLength(st.points);
     if (st.arrow === false) return;
     const n = tiny ? 1 : Math.max(1, Math.min(6, Math.round(L / spacing)));
-    const fractions = st.arrowFractions || Array.from({length:n}, (_,i)=>(i+1)/(n+1));
+    const fractions = tiny && letter.case === 'numbers' ? [0.5] : (st.arrowFractions || Array.from({length:n}, (_,i)=>(i+1)/(n+1)));
     for (const f of fractions) {
       const { x, y, angle } = pointAtFraction(st.points, f);
       drawArrow(ctx, map.tx(x), map.ty(y), angle, px, col);

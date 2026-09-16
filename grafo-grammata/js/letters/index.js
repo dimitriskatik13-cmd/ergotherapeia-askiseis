@@ -13,7 +13,7 @@ function build(def, letterCase) {
     phonemeAudio: `${def.ph}.mp3`,   // αποσυνδεδεμένος ήχος, σταθερό όνομα ανά ΦΩΝΗΜΑ
     phonemeKey: def.ph,
     keyword: def.keyword || null,
-    zones: { ...ZONES },
+    zones: { ...ZONES, ...(letterCase === 'numbers' ? {xHeightTop:0.205,baseline:0.82} : {}) },
     strokes: def.strokes
       .slice()
       .sort((a, b) => a.order - b.order),

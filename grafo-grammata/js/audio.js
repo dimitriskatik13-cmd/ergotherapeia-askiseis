@@ -1,6 +1,6 @@
 // Offline playback: approved phonemes use original PCM WAV files so encoding
-// cannot alter their release/frication. Number recordings remain MP3.
-// Legacy letter dataset names ending in .mp3 are accepted and routed to WAV.
+// cannot alter their release/frication. Number names also use approved Melina WAV.
+// Legacy dataset names ending in .mp3 are accepted and routed to WAV.
 
 export class Phonemes {
   constructor(basePath = 'sounds/') {
@@ -13,7 +13,7 @@ export class Phonemes {
   }
 
   _key(name) { return name.replace(/\.(?:mp3|wav)$/i, ''); }
-  _url(key) { return `${this.base}${key}.${/^num-\d+$/.test(key) ? 'mp3' : 'wav'}`; }
+  _url(key) { return `${this.base}${key}.wav`; }
 
   /** Αρχικοποίηση AudioContext — απαιτεί χειρονομία χρήστη (π.χ. το ✓). */
   unlock() {

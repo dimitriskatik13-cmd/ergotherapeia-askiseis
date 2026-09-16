@@ -3,11 +3,11 @@
    φωνήματα ώστε να δουλεύει χωρίς ίντερνετ στο γραφείο.
    ───────────────────────────────────────────────────────────────────────────── */
 // Ανεβαίνει ΜΑΖΙ με το APP_VERSION στο js/version.js σε κάθε deploy.
-const VERSION = 'grafo-v25';
+const VERSION = 'grafo-v26';
 const CACHE = `synoida-${VERSION}`;
 
 const PHONEMES = ['a','e','i','o','v','gh','dh','z','th','k','l','m','n','ks','p','r','s','t','f','kh','ps'];
-const NUMBER_SOUNDS = Array.from({ length: 32 }, (_, i) => `sounds/num-${i}.mp3`);
+const NUMBER_SOUNDS = Array.from({ length: 32 }, (_, i) => `sounds/num-${i}.wav`);
 
 const ASSETS = [
   './',

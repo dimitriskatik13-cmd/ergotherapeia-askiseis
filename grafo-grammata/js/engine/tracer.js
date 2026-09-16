@@ -144,7 +144,8 @@ export class Tracer {
         if (this._dist(pt, st[0]) > this._startTol()) continue;
         this.progress[i] = 0; this.travel[i] = 0; this.travelPoint[i] = {...pt}; this.covered[i].fill(false); this.covered[i][0] = true; this.awaitStart = false; this.issue = null;
       }
-      if (this.travelPoint[i]) this.travel[i] += this._dist(this.travelPoint[i],pt);
+      const previousPointer = this.travelPoint[i];
+      if (previousPointer) this.travel[i] += this._dist(previousPointer,pt);
       this.travelPoint[i] = {...pt};
       const p = this.progress[i];
       // A bounded forward window disambiguates loops/crossings and prevents
@@ -162,6 +163,17 @@ export class Tracer {
         continue;
       }
       if (best > p) {
+        // A wide pixel tolerance must not turn backwards motion around a small
+        // loop into forward progress. Ignore clearly opposed local movement.
+        if (previousPointer && p >= 0) {
+          const mx=pt.x-previousPointer.x, my=pt.y-previousPointer.y;
+          const tx=st[best].x-st[p].x, ty=st[best].y-st[p].y;
+          const magnitude=Math.hypot(mx,my)*Math.hypot(tx,ty);
+          if (magnitude > 1e-9 && (mx*tx+my*ty) / magnitude < -0.35) {
+            this.issue='direction';
+            continue;
+          }
+        }
         // Require the intervening path to stay near this pointer segment.
         // This also avoids accepting shortcuts across a tight corner.
         const a = st[p], dx = pt.x-a.x, dy = pt.y-a.y, den = dx*dx+dy*dy;
