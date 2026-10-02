@@ -47,7 +47,7 @@ function bootstrap() {
   ]);
 
   // ── Paper (writing surface) ──────────────────────────────────────────────────
-  const hint = el('div', { class: 'hint', id: 'hint' });
+  const hint = el('div', { class: 'hint', id: 'hint', role: 'status', 'aria-live': 'polite' });
   const paper = el('section', { class: 'paper', id: 'paper' }, [hint]);
 
   // ── Rail (έλεγχοι θεραπευτή) ─────────────────────────────────────────────────
@@ -58,7 +58,7 @@ function bootstrap() {
 
   const modesWrap = el('div', { class: 'rail__modes' });
   const modeButtons = MODES.map((m) => {
-    const b = el('button', { class: 'modebtn', type: 'button', onclick: () => store.set('mode', m.value) }, [m.label]);
+    const b = el('button', { class: 'modebtn', type: 'button', onclick: () => selectMode(m.value) }, [m.label]);
     modesWrap.appendChild(b);
     return { ...m, btn: b };
   });
@@ -109,6 +109,15 @@ function bootstrap() {
   gear.addEventListener('click', settings.open);
 
   // ── Actions ──────────────────────────────────────────────────────────────────
+  function selectMode(mode) {
+    if (mode === 'trace' && store.get('mode') === 'trace') {
+      session.clearInk();
+      updateUI(store.all());
+      return;
+    }
+    store.set('mode', mode);
+  }
+
   doneBtn.addEventListener('click', () => session.completeByTherapist());
   clearBtn.addEventListener('click', () => { doneBtn.classList.remove('is-done'); session.clearInk(); });
   phonBtn.addEventListener('click', () => session.repeatPhoneme());
@@ -131,7 +140,10 @@ function bootstrap() {
     prevBtn.setAttribute('aria-label', isNumber ? 'Προηγούμενος αριθμός' : 'Προηγούμενο γράμμα');
     nextBtn.setAttribute('aria-label', isNumber ? 'Επόμενος αριθμός' : 'Επόμενο γράμμα');
     phonBtn.replaceChildren(icon('ic-speaker'), document.createTextNode(isNumber ? 'Άκουσε' : 'Φώνημα'));
-    modeButtons.forEach((m) => m.btn.classList.toggle('is-active', m.value === data.mode));
+    modeButtons.forEach((m) => {
+      m.btn.classList.toggle('is-active', m.value === data.mode);
+      m.btn.setAttribute('aria-pressed', String(m.value === data.mode));
+    });
     replayBtn.style.display = data.mode === 'demo' ? '' : 'none';
     doneBtn.hidden = data.mode !== 'free';
     doneBtn.classList.toggle('is-done', session.completed);
@@ -164,6 +176,7 @@ function bootstrap() {
     homeBtn.focus();
   }
   function showHome() {
+    phonemes.stop();
     session._interruptStroke(true);
     session.input.disable(); session._stopAnim(); feedback.stop();
     settings.close(); approval.close();

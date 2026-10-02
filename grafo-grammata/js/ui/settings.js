@@ -4,65 +4,80 @@
 // πίεση, μέγεθος, γραμμές, ταχύτητα) · δεξιόχειρας/αριστερόχειρας.
 // Γράφει κατευθείαν στο store· το main.js αντιδρά μέσω subscribe.
 // ─────────────────────────────────────────────────────────────────────────────
-import { el, clear } from './dom.js';
+import { el, clear, modalFocus } from './dom.js';
 import { lettersByCase } from '../letters/index.js';
 
+const settingId = (label) => `setting-${label.trim().replace(/\s+/g, '-').replace(/[()]/g, '')}`;
+
 function segmented(label, options, getValue, onPick) {
-  const seg = el('div', { class: 'seg' });
-  const render = () => {
-    clear(seg);
-    options.forEach((o) => {
-      const active = getValue() === o.value;
-      seg.appendChild(el('button', {
-        class: 'seg__btn' + (active ? ' is-active' : ''),
-        type: 'button',
-        onclick: () => { onPick(o.value); render(); },
-      }, [o.label]));
+  const seg = el('div', { class: 'seg', role: 'group', 'aria-label': label });
+  const buttons = options.map((o) => {
+    const btn = el('button', {
+      class: 'seg__btn', id: `${settingId(label)}-${o.value}`, type: 'button',
+      onclick: () => { onPick(o.value); sync(); },
+    }, [o.label]);
+    seg.appendChild(btn);
+    return { value: o.value, btn };
+  });
+  function sync() {
+    buttons.forEach(({ value, btn }) => {
+      const active = getValue() === value;
+      btn.classList.toggle('is-active', active);
+      btn.setAttribute('aria-pressed', String(active));
     });
-  };
-  render();
+  }
+  sync();
   return el('div', { class: 'field' }, [el('label', { class: 'field__label' }, [label]), seg]);
 }
 
 function slider(label, lo, hi, getValue, onInput, fmt) {
+  const id = settingId(label);
   const input = el('input', {
     type: 'range', min: '0', max: '1000', value: String(Math.round(toUnit(getValue()) * 1000)),
-    class: 'slider',
+    class: 'slider', id, 'aria-valuetext': `${Math.round(toUnit(getValue()) * 100)}%`,
   });
   const ends = el('div', { class: 'field__ends' }, [el('span', {}, [lo]), el('span', {}, [hi])]);
   input.addEventListener('input', () => {
     const v = parseInt(input.value, 10) / 1000;
+    input.setAttribute('aria-valuetext', `${Math.round(v * 100)}%`);
     onInput(v);
   });
-  return el('div', { class: 'field' }, [el('label', { class: 'field__label' }, [label]), input, ends]);
+  return el('div', { class: 'field' }, [el('label', { class: 'field__label', for: id }, [label]), input, ends]);
   function toUnit(x) { return Math.max(0, Math.min(1, x)); }
 }
 
 function toggle(label, getValue, onToggle) {
-  const btn = el('button', { class: 'switch', type: 'button', role: 'switch' });
+  const id = settingId(label);
+  const btn = el('button', { class: 'switch', type: 'button', role: 'switch', id, 'aria-label': label });
   const knob = el('span', { class: 'switch__knob' });
   btn.appendChild(knob);
-  const sync = () => btn.classList.toggle('is-on', !!getValue());
+  const sync = () => {
+    btn.classList.toggle('is-on', !!getValue());
+    btn.setAttribute('aria-checked', String(!!getValue()));
+  };
   btn.addEventListener('click', () => { onToggle(!getValue()); sync(); });
   sync();
-  return el('div', { class: 'field field--row' }, [el('label', { class: 'field__label' }, [label]), btn]);
+  return el('div', { class: 'field field--row' }, [el('label', { class: 'field__label', for: id }, [label]), btn]);
 }
 
 export function buildSettings({ store, onOpenApproval }) {
-  const panel = el('aside', { class: 'panel', id: 'panel', 'aria-hidden': 'true' });
+  const panel = el('aside', { class: 'panel', id: 'panel', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'settings-title', 'aria-hidden': 'true', tabindex: '-1' });
   const backdrop = el('button', {class:'settings-backdrop',type:'button','aria-label':'Κλείσιμο ρυθμίσεων',tabindex:'-1'});
   backdrop.hidden = true;
   backdrop.addEventListener('click', close);
   const inner = el('div', { class: 'panel__inner' });
   panel.appendChild(inner);
+  const focus = modalFocus(panel, { close, initialFocus: () => panel.querySelector('.icon-btn'), exempt: [backdrop] });
 
   function rebuild() {
+    const restoreId = panel.contains(document.activeElement) ? document.activeElement.id : null;
+    const scrollTop = inner.scrollTop;
     clear(inner);
     const s = store.all();
 
     inner.appendChild(el('div', { class: 'panel__head' }, [
-      el('h2', { class: 'panel__title' }, ['Ρυθμίσεις θεραπευτή']),
-      el('button', { class: 'icon-btn', 'aria-label': 'Κλείσιμο', onclick: () => close() }, ['✕']),
+      el('h2', { class: 'panel__title', id: 'settings-title' }, ['Ρυθμίσεις θεραπευτή']),
+      el('button', { class: 'icon-btn', id: 'settings-close', 'aria-label': 'Κλείσιμο', onclick: () => close() }, ['✕']),
     ]));
 
     // The home menu selects letters or numbers; letter settings select case.
@@ -80,7 +95,7 @@ export function buildSettings({ store, onOpenApproval }) {
     inner.appendChild(buildLetterChips(store));
 
     // Αυστηρότητα
-    inner.appendChild(slider('Αυστηρότητα ελέγχου', 'Χαλαρό', 'Αυστηρό',
+    inner.appendChild(slider(s.case === 'numbers' ? 'Αυστηρότητα ελέγχου' : 'Ακρίβεια σχήματος', 'Χαλαρό', 'Αυστηρό',
       () => store.get('strictness'), (v) => store.set('strictness', v)));
 
     inner.appendChild(el('div', { class: 'panel__sep' }, ['Διαβάθμιση']));
@@ -130,16 +145,19 @@ export function buildSettings({ store, onOpenApproval }) {
     inner.appendChild(el('p', { class: 'hintnote hintnote--muted' }, [
       `Δεν αποθηκεύεται κανένα δεδομένο παιδιού. Οι ρυθμίσεις μένουν τοπικά στη συσκευή.`,
     ]));
+    if (restoreId) (document.getElementById(restoreId) || panel.querySelector('.icon-btn')).focus({ preventScroll: true });
+    inner.scrollTop = scrollTop;
   }
 
   function buildLetterChips(store) {
     const isNum = store.get('case') === 'numbers';
     const wrap = el('div', { class: 'field' }, [el('label', { class: 'field__label' }, [isNum ? 'Στοχευμένοι αριθμοί' : 'Στοχευμένα γράμματα'])]);
-    const grid = el('div', { class: 'chips' });
+    const grid = el('div', { class: 'chips', role: 'group', 'aria-label': isNum ? 'Στοχευμένοι αριθμοί' : 'Στοχευμένα γράμματα' });
     const list = lettersByCase(store.get('case'));
     const sel = store.get('targetLetters');
     const allBtn = el('button', {
       class: 'chip chip--all' + (!sel ? ' is-active' : ''), type: 'button',
+      id: 'target-all', 'aria-pressed': String(!sel),
       onclick: () => { store.update({ targetLetters: null }); rebuild(); },
     }, ['Όλα']);
     grid.appendChild(allBtn);
@@ -147,6 +165,7 @@ export function buildSettings({ store, onOpenApproval }) {
       const active = sel && sel.includes(l.char);
       grid.appendChild(el('button', {
         class: 'chip' + (active ? ' is-active' : ''), type: 'button',
+        id: `target-${l.case}-${l.char}`, 'aria-pressed': String(!!active),
         onclick: () => {
           let cur = store.get('targetLetters') ? [...store.get('targetLetters')] : [];
           const selecting = !cur.includes(l.char);
@@ -171,11 +190,8 @@ export function buildSettings({ store, onOpenApproval }) {
     return wrap;
   }
 
-  function open() { rebuild(); backdrop.hidden = false; panel.classList.add('is-open'); panel.setAttribute('aria-hidden', 'false'); }
-  function close() { backdrop.hidden = true; panel.classList.remove('is-open'); panel.setAttribute('aria-hidden', 'true'); }
-  document.addEventListener('keydown', (event) => {
-    if (event.key === 'Escape' && panel.classList.contains('is-open')) close();
-  });
+  function open() { rebuild(); inner.scrollTop = 0; backdrop.hidden = false; focus.open(); }
+  function close() { backdrop.hidden = true; focus.close(); }
 
   rebuild();
   return { panel, backdrop, open, close };

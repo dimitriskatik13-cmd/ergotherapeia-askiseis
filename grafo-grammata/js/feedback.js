@@ -20,7 +20,12 @@ export class Feedback {
     this._hintTimer = setTimeout(() => this.clearHint(), 2200);
   }
   clearHint() {
-    if (this.hintEl) this.hintEl.classList.remove('is-visible');
+    clearTimeout(this._hintTimer);
+    this._hintTimer = null;
+    if (this.hintEl) {
+      this.hintEl.classList.remove('is-visible');
+      this.hintEl.textContent = '';
+    }
   }
 
   showCompleted(letter) {

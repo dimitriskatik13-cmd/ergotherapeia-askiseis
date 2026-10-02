@@ -134,14 +134,14 @@ export function drawStartNumbers(ctx, letter, map, { radius = 0.045, fontRatio =
 }
 
 /**
- * Βέλη κατεύθυνσης κατά μήκος των strokes — μεγάλα, με «κοντάρι» (σαν →) και
- * πλήθος ανάλογο του μήκους (μικρή γραμμή → 1 βέλος, μεγάλη → έως 6).
+ * Μικρά βέλη κατεύθυνσης, ώστε το γράμμα και το ίχνος να παραμένουν ευδιάκριτα.
+ * Πλήθος ανάλογο του μήκους (μικρή γραμμή → 1 βέλος, μεγάλη → έως 6).
  */
-export function drawArrows(ctx, letter, map, { size = 0.04, spacing = 0.22 } = {}) {
+export function drawArrows(ctx, letter, map, { size = 0.022, spacing = 0.22 } = {}) {
   ctx.save();
   // Στα μικρά μεγέθη τα βέλη μικραίνουν μαζί με το γράμμα (με όριο ορατότητας)
   // και μπαίνει ΕΝΑ ανά γραμμή — για να φαίνεται καθαρά το ίχνος.
-  const px = Math.max(map.s(size), Math.min(6, map.side * 0.075));
+  const px = Math.max(map.s(size), Math.min(3.5, map.side * 0.042));
   const tiny = map.side < 90;
   letter.strokes.forEach((st, idx) => {
     const col = STROKE_COLORS[idx % STROKE_COLORS.length];

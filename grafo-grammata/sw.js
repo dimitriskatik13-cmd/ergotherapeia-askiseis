@@ -49,16 +49,26 @@ self.addEventListener('fetch', (e) => {
   if (req.method !== 'GET') return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
+  const cached = req.cache === 'reload' || req.cache === 'no-store'
+    ? Promise.resolve(undefined) : caches.match(req).catch(() => undefined);
   e.respondWith(
-    caches.match(req).then((hit) => {
+    cached.then((hit) => {
       if (hit) return hit;
       return fetch(req).then((res) => {
-        if (res && res.status === 200 && res.type === 'basic') {
+        if (req.cache !== 'no-store' && res && res.status === 200 && res.type === 'basic') {
           const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put(req, copy));
+          const save = caches.open(CACHE).then((c) => c.put(req, copy)).catch(() => {});
+          // Cache storage failure must not replace a valid network response.
+          if (e.waitUntil) e.waitUntil(save);
         }
         return res;
-      }).catch(() => caches.match('index.html'));
+      }).catch(async (error) => {
+        // An audio/module miss must fail as its own resource, never as HTML.
+        if (req.mode !== 'navigate') throw error;
+        const shell = await caches.match('index.html').catch(() => undefined);
+        if (shell) return shell;
+        throw error;
+      });
     })
   );
 });

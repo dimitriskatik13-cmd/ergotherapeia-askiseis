@@ -3,16 +3,17 @@
 // βέλη/αριθμούς φοράς, ΩΣΤΕ ο Δημήτρης να εγκρίνει γράμμα-γράμμα ΠΡΙΝ κλειδώσει
 // οριστικά το dataset (Ενότητα 2 του spec — [ΕΞΑΡΤΗΣΗ]).
 // ─────────────────────────────────────────────────────────────────────────────
-import { el, clear } from './dom.js';
+import { el, clear, modalFocus } from './dom.js';
 import { lettersByCase } from '../letters/index.js';
 import { renderGuide, fieldMap, letterContentBottom } from '../engine/guide.js';
 
 export function buildApproval(store) {
-  const overlay = el('div', { class: 'approval', 'aria-hidden': 'true' });
+  const overlay = el('div', { class: 'approval', role: 'dialog', 'aria-modal': 'true', 'aria-labelledby': 'approval-title', 'aria-hidden': 'true', tabindex: '-1' });
   const head = el('div', { class: 'approval__head' });
   const grid = el('div', { class: 'approval__grid' });
   overlay.appendChild(head);
   overlay.appendChild(grid);
+  const focus = modalFocus(overlay, { close, initialFocus: () => head.querySelector('.icon-btn') });
 
   let viewCase = 'lower';
 
@@ -27,7 +28,6 @@ export function buildApproval(store) {
     renderGuide(ctx, SIZE, SIZE, letter, {
       map, lines: 'double',
       force: { guide: true, numbers: true, arrows: true },
-      arrowOpts: { size: 0.04 },
     });
     const phon = letter.case === 'numbers' ? '' : ` /${letter.phonemeKey}/ ·`;
     const cap = el('div', { class: 'approval__cap' }, [
@@ -43,32 +43,34 @@ export function buildApproval(store) {
   }
 
   function renderHead() {
+    const restoreId = head.contains(document.activeElement) ? document.activeElement.id : null;
     clear(head);
     const seg = el('div', { class: 'seg' });
     [['lower', 'Πεζά'], ['upper', 'Κεφαλαία'], ['numbers', 'Αριθμοί']].forEach(([val, label]) => {
       seg.appendChild(el('button', {
         class: 'seg__btn' + (viewCase === val ? ' is-active' : ''), type: 'button',
+        id: `approval-case-${val}`, 'aria-pressed': String(viewCase === val),
         onclick: () => { viewCase = val; renderHead(); renderGridFor(val); },
       }, [label]));
     });
     head.appendChild(el('div', { class: 'approval__titles' }, [
-      el('h2', {}, ['Έγκριση φοράς & σειράς γραμμών']),
+      el('h2', { id: 'approval-title' }, ['Έγκριση φοράς & σειράς γραμμών']),
       el('p', {}, ['Προεπισκόπηση προς έγκριση γράμμα-γράμμα (πρώτη κλινική εκδοχή).']),
     ]));
     head.appendChild(seg);
-    head.appendChild(el('button', { class: 'icon-btn', 'aria-label': 'Κλείσιμο', onclick: close }, ['✕']));
+    head.appendChild(el('button', { class: 'icon-btn', id: 'approval-close', 'aria-label': 'Κλείσιμο', onclick: close }, ['✕']));
+    if (restoreId) document.getElementById(restoreId)?.focus({ preventScroll: true });
   }
 
   function open() {
     viewCase = store.get('case');
     renderHead();
     renderGridFor(viewCase);
-    overlay.classList.add('is-open');
-    overlay.setAttribute('aria-hidden', 'false');
+    grid.scrollTop = 0;
+    focus.open();
   }
   function close() {
-    overlay.classList.remove('is-open');
-    overlay.setAttribute('aria-hidden', 'true');
+    focus.close();
   }
 
   return { overlay, open, close };

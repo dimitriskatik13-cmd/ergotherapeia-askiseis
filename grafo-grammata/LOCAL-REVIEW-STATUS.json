@@ -1,0 +1,168 @@
+{
+  "updated_at": "2026-09-29T19:48:49.710600+00:00",
+  "status": "local-fixes-tested-awaiting-device-user-review",
+  "public_deployment": false,
+  "baseline_commit": "11b5d8e3cf29ed7aa2c8cb7c17100085586351ee",
+  "backup_sha256": "e55c391fbc1677fc48b6838461375ae87a6912603ecdbf1af6604a82cbaa65d4",
+  "baseline_checks": {
+    "lower.js": true,
+    "upper.js": true,
+    "_dsl.js": true
+  },
+  "test_groups_passed": 89,
+  "direction_cases": 486,
+  "physical_pencil_tested": false,
+  "local_review_url": "http://localhost:8796/?char=%CE%BA&case=lower",
+  "local_revision": "20260929-stress-fixes",
+  "r1_backup_sha256": "95cdf606059297004408b3ab66393db69382875010b748a8d20815afafc62018",
+  "r1_baseline_checks": {
+    "lower.js": true,
+    "upper.js": true,
+    "_dsl.js": true
+  },
+  "changed_in_r2": [
+    "γ",
+    "ρ",
+    "ς",
+    "Μ"
+  ],
+  "verified_unchanged_in_r2": [
+    "Σ"
+  ],
+  "sigma_reference": {
+    "printed_page": 24,
+    "pdf_page": 25,
+    "direction": [
+      "right",
+      "down-right",
+      "down-left",
+      "right"
+    ]
+  },
+  "r2_backup_sha256": "c1d59c3587572cafeff3c931142b6d5fabfc1f2b849df10b1e8705d97340de17",
+  "r2_baseline_checks": {
+    "lower.js": true,
+    "upper.js": true,
+    "_dsl.js": true
+  },
+  "changed_in_r3": [
+    "γ"
+  ],
+  "gamma_shape_source": "tools/reference/gamma-reference.json",
+  "gamma_direction_status": "separate-local-proposal-awaiting-approval",
+  "changed_in_r4": [
+    "ς"
+  ],
+  "other_48_letter_forms_match_r3": true,
+  "gamma_feedback": "User: πολύ καλύτερα. Geometry preserved.",
+  "r3_backup_sha256": "8e580079c1297b9639e69677098ecfab637896b15da366a9cc99956e29ba44d2",
+  "changed_in_r5": [
+    "Μ"
+  ],
+  "other_48_letter_forms_match_r4": true,
+  "mu_direction": "left-to-right per latest user instruction",
+  "r4_backup_sha256": "6d463208208a14453148b822c4db18444534330e94d06b9fb559643fb31fbe11",
+  "geometry_revision": "20260929-lower-kappa-outward",
+  "physical_test_status": "Desktop browser tested; physical iPad/Pencil test pending",
+  "hardware_models_physically_verified": [],
+  "source_runtime_files": 144,
+  "lan_test_url": null,
+  "changed_letters_r7": [
+    "δ",
+    "λ"
+  ],
+  "user_acceptance_criterion": "Accept a complete recognizable Greek letter near its guide regardless of stroke direction, start or order; reject incomplete shapes and unrelated scribbles",
+  "user_difficult_letters": [
+    "β",
+    "ε",
+    "δ"
+  ],
+  "changed_letters_r8": [
+    "δ"
+  ],
+  "other_48_greek_forms_match_r7": true,
+  "changed_letters_r9": [
+    "μ",
+    "π",
+    "ω"
+  ],
+  "verified_unchanged_r9": [
+    "κ"
+  ],
+  "other_46_greek_forms_match_r8": true,
+  "audio_status": "21 letter phonemes and 32 Melina number names are approved WAVs; publicly hash verified",
+  "audio_review_url": "https://dimitriskatik13-cmd.github.io/ergotherapeia-askiseis/grafo-grammata/",
+  "preview_server": {
+    "bind": "127.0.0.1",
+    "port": 8796,
+    "session_id": 23512,
+    "checked_date": "2026-09-29"
+  },
+  "audio_approved_count": 21,
+  "audio_pending_keys": [],
+  "audio_updated_at": "2026-09-15T14:24:27.183250+00:00",
+  "readiness_check_date": "2026-09-15",
+  "audio_manifest": "../../../testing/grafo-audio-20260913/release-candidate/MANIFEST.json",
+  "audio_runtime_integrated": true,
+  "audio_format": "wav",
+  "ink_interruption_fix": "preserve mouse/pen; rollback cancelled touch; no auto-completion",
+  "style_reference": "Χτίζω πρόταση source styles/assets",
+  "home_menu": [
+    "letters",
+    "numbers"
+  ],
+  "available_modes": [
+    "demo",
+    "trace",
+    "free"
+  ],
+  "menu_entry": "select white tile, selected tile blue, then green Start",
+  "public_version": 27,
+  "published_commit": "46197f027d1aa7244ac0d83c4befe224021992df",
+  "public_url": "https://dimitriskatik13-cmd.github.io/ergotherapeia-askiseis/grafo-grammata/",
+  "public_refresh_url": "https://dimitriskatik13-cmd.github.io/ergotherapeia-askiseis/grafo-grammata/",
+  "public_files_sha256_matched": 91,
+  "publication_receipt": "../../../testing/grafo-publication-v27/RECEIPT.json",
+  "legacy_phoneme_mp3_retained": 21,
+  "visible_version": false,
+  "latest_changed_public_files_sha256_matched": 3,
+  "title_focus_outline_removed": true,
+  "strictness_change": "Greek letters: nearby shape geometry and coverage, independent of direction and order; numeric true lift endpoint validated",
+  "settings_outside_tap_closes": true,
+  "manual_completion_visible_modes": [
+    "free"
+  ],
+  "reward": "Shared Χτίζω πρόταση Bravo for 2 seconds at screen center; completed ink persists at far right",
+  "numbers_review_status": "user-approved, integrated and published",
+  "numbers_review_url": "https://dimitriskatik13-cmd.github.io/ergotherapeia-askiseis/grafo-grammata/",
+  "numbers_review_state": "../../../testing/grafo-numbers-20260916/STATE.md",
+  "completed_preview": "Original grey tracing model under child ink, same coordinates, retained at far right",
+  "local_review_record": "../../../testing/grafo-fixes-20260929/STATE.md",
+  "shape_reverse_order_size_cases": 588,
+  "trace_reselect": "Clears partial or completed attempt, removes completion preview and enables a fresh trace of the same character",
+  "layout_revision": "Narrower rail, larger writing surface, uniform white activity background",
+  "layout_browser_checks": "../../../testing/grafo-shape-20260929/layout-reset/browser-checks.json",
+  "release_ready": false,
+  "stress_test_record": "../../../testing/grafo-fixes-20260929/REPORT.md",
+  "stress_test_date": "2026-09-29",
+  "stress_engine_cases": 64005,
+  "stress_lifecycle_cases": 10900,
+  "stress_offline_vm_requests": 8600,
+  "stress_subagents": {
+    "model": "gpt-6.1-sol",
+    "count": 2
+  },
+  "stress_runtime_changes": true,
+  "release_readiness_reason": "Local technical checks passed; physical iPad/Pencil and user acceptance pending. Publication not requested.",
+  "technical_checks_passed": true,
+  "prior_stress_test_record": "../../../testing/grafo-stress-20260929/REPORT.md",
+  "browser_navigation_forms": 81,
+  "browser_reset_repetitions": 20,
+  "browser_modes_repetitions": 15,
+  "real_browser_offline_passed": true,
+  "fixed_mobile_paper_css_px": [
+    296,
+    235.5
+  ],
+  "fix_backup_sha256": "661f6b5b7207ea17073592382abb15c596a4a0ebd6a092b4197fd7e092dddecd"
+}

@@ -86,6 +86,8 @@ export class Session {
   /** (Επαν)εκκίνηση της τρέχουσας άσκησης με βάση mode/letter/settings. */
   _start() {
     if (!this.letter || !this.settings) return;
+    this._audioAttempt = (this._audioAttempt || 0) + 1;
+    this.phonemes.stop?.();
     this._stopAnim();
     this.surface.setContentBottom(letterContentBottom(this.letter));
     this.surface.clear('ink');
@@ -126,7 +128,6 @@ export class Session {
       lineMap: surf.lineMap,
       level: this._effectiveLevel(),
       lines: this.settings.lines,
-      arrowOpts: { size: 0.044 },
     });
   }
 
@@ -274,6 +275,7 @@ export class Session {
     if (this.completed) return;
     this.completed = true;
     this.input.disable();
+    this.feedback.clearHint();
     this._stopAnim();
     this._celebrate();
     if (this.onComplete) this.onComplete(this.letter);
@@ -284,9 +286,21 @@ export class Session {
   }
 
   /** Το ΜΟΝΟ σημείο που παίζει φώνημα: το κουμπί 🔊 Φώνημα του θεραπευτή. */
-  repeatPhoneme() { if (this.letter) this.phonemes.play(this.letter.phonemeAudio); }
+  async repeatPhoneme() {
+    if (!this.letter) return;
+    const letter = this.letter;
+    const attempt = this._audioAttempt = (this._audioAttempt || 0) + 1;
+    this.feedback.clearHint();
+    const played = await this.phonemes.play(letter.phonemeAudio);
+    if (played === false && attempt === this._audioAttempt && letter === this.letter) {
+      this.feedback.hint('Δεν ακούστηκε ο ήχος. Πάτησε ξανά.');
+    }
+    return played;
+  }
 
   clearInk() {
+    this._audioAttempt = (this._audioAttempt || 0) + 1;
+    this.phonemes.stop?.();
     this.input.disable();
     this.pencil = null;
     this.activeStroke = null;

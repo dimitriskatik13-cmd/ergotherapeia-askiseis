@@ -9,20 +9,23 @@
   flex: 1;
   display: flex;
   flex-direction: row;
-  gap: var(--s4);
+  gap: var(--s3);
   padding: 0 var(--s4) var(--s4);
   min-height: 0;
 }
 body.hand-left .stage { flex-direction: row-reverse; }
 
 .rail {
-  width: clamp(220px, 22vw, 300px);
+  width: clamp(200px, 18vw, 240px);
+  flex-shrink: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--s3);
+  gap: var(--s2);
   min-height: 0;
   overflow-y: auto;
   padding: var(--s1);
+  background: var(--bg-alt);
+  border-radius: var(--r-card);
 }
 
 .paper-wrap {
@@ -40,7 +43,6 @@ body.hand-left .stage { flex-direction: row-reverse; }
   flex: 1;
   background: var(--paper);
   border-radius: var(--r-card);
-  box-shadow: var(--shadow-card);
   overflow: hidden;
   touch-action: none;               /* ΚΡΙΣΙΜΟ: όχι scroll/zoom όταν γράφει το παιδί */
   -ms-touch-action: none;
@@ -89,7 +91,7 @@ body.hand-left .stage { flex-direction: row-reverse; }
 .rail__char {
   font-family: var(--font-display);
   font-weight: 600;
-  font-size: clamp(48px, 5vw, 64px);
+  font-size: clamp(40px, 4vw, 52px);
   line-height: 1;
   color: var(--grey);
   min-width: 0;
@@ -110,14 +112,14 @@ body.hand-left .stage { flex-direction: row-reverse; }
 
 .rail__modes { display: flex; flex-direction: column; gap: var(--s1); }
 .modebtn {
-  min-height: 58px;
+  min-height: 52px;
   border-radius: 14px;
   border: 1.5px solid transparent;
   background: var(--paper);
   box-shadow: var(--shadow-soft);
   color: var(--grey);
   font-weight: 600;
-  font-size: 20px;
+  font-size: 18px;
 }
 .modebtn.is-active {
   background: var(--blue-08);
@@ -196,7 +198,7 @@ body.hand-left .stage { flex-direction: row-reverse; }
 /* Initial choice and navigation match the other Synoida activities. */
 [hidden] { display:none !important; }
 .icon {width:20px;height:20px;flex:none;fill:none;stroke:currentColor;stroke-width:1.9;stroke-linecap:round;stroke-linejoin:round;}
-.activity-screen {display:flex;flex-direction:column;flex:1;min-height:0;position:relative;z-index:1;}
+.activity-screen {display:flex;flex-direction:column;flex:1;min-height:0;position:relative;z-index:1;background:var(--paper);}
 .activity-toolbar {display:flex;gap:10px;flex-wrap:wrap;padding:12px 24px 14px;flex-shrink:0;}
 .btn--home {background:var(--green);color:white;}
 .btn--settings {background:var(--red);color:white;}
@@ -223,3 +225,30 @@ body.is-home .backdrop {display:none;}
 
 /* The heading is a screen-reader focus target, not an interactive control. */
 .home-menu h1:focus {outline:none;}
+
+/* Keep an actual writing area on phones; overflow scrolls around the canvas. */
+@media (max-width: 600px) {
+  .activity-screen { overflow-y: auto; }
+  .activity-toolbar { padding: 6px 12px; }
+  .stage { flex: 1 0 auto; gap: 8px; padding: 0 12px 12px; }
+  .rail { gap: 8px; }
+  .rail__letterrow { padding: 4px 8px; }
+  .navbtn { height: 48px; }
+  .rail__modes { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 4px; }
+  .modebtn { min-height: 48px; font-size: 14px; padding: 4px; }
+  .rail__actions { flex-wrap: nowrap; gap: 4px; }
+  .rail__actions .btn { flex: 1 1 0; min-width: 0; min-height: 48px; font-size: 13px; padding: 4px; }
+  .rail__actions .icon { display: none; }
+  .paper-wrap { flex: 1 0 220px; min-height: 220px; }
+  .hint { white-space: normal; width: max-content; max-width: calc(100% - 16px); text-align: center; padding: 8px 12px; font-size: 14px; }
+}
+@media (max-width: 600px) and (max-height: 700px) {
+  body:not(.is-home) .doc-header { padding: 6px 12px; }
+  body:not(.is-home) .doc-logo { height: 36px; }
+  body:not(.is-home) .doc-right { display: none; }
+  body:not(.is-home) .app-footer { padding: 4px 12px; font-size: 9px; }
+  body:not(.is-home) .app-footer .contact { display: none; }
+}
+@media (max-width: 360px) {
+  .modebtn { font-size: 13px; }
+}
