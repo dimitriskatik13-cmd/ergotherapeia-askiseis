@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-10-02T17:57:10+00:00",
-  "status": "review-fixes-1-2-3-5-6-8-12-18-23-24-and-end-tolerance-tested-committed-locally-not-pushed-awaiting-device-user-review",
+  "updated_at": "2026-10-02T18:53:01+00:00",
+  "status": "review-fixes-and-tail-fix-committed-locally-not-pushed-awaiting-device-user-review",
   "public_deployment": false,
   "baseline_commit": "11b5d8e3cf29ed7aa2c8cb7c17100085586351ee",
   "backup_sha256": "e55c391fbc1677fc48b6838461375ae87a6912603ecdbf1af6604a82cbaa65d4",
@@ -9,7 +9,7 @@
     "upper.js": true,
     "_dsl.js": true
   },
-  "test_groups_passed": 140,
+  "test_groups_passed": 142,
   "direction_cases": 486,
   "physical_pencil_tested": false,
   "local_review_url": "http://localhost:8797/?char=%CE%B1&case=lower",

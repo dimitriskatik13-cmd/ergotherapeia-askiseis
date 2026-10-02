@@ -153,3 +153,25 @@ test('digit direction and order are still required', () => {
     assert.equal(swapped.done, false, `${letter.char} last stroke first`);
   }
 });
+
+// ── Ουρές και άγκιστρα: το ζ ─────────────────────────────────────────────────
+const zeta = get('ζ'), zetaPath = zeta.strokes[0].points;
+const nearest = (x, y) => zetaPath.reduce((best, p, i) => (Math.hypot(p.x - x, p.y - y) < Math.hypot(zetaPath[best].x - x, zetaPath[best].y - y) ? i : best), 0);
+const belly = nearest(0.585, 0.795), hook = nearest(0.575, 0.93);
+const fine = points => { const out = []; for (let i = 1; i < points.length; i++) for (let k = 0; k < 6; k++) out.push({ x: points[i - 1].x + (points[i].x - points[i - 1].x) * k / 6, y: points[i - 1].y + (points[i].y - points[i - 1].y) * k / 6 }); out.push(points.at(-1)); return out; };
+const zetaWith = (tail, strictness = 0.4) => {
+  const tracer = new Tracer(zeta, strictness);
+  tracer.setToleranceFloor(12 / SIDE);
+  return draw(tracer, fine([...zetaPath.slice(0, belly + 1), ...tail]));
+};
+const scaledTail = factor => zetaPath.slice(belly).map(p => ({ x: zetaPath[belly].x + (p.x - zetaPath[belly].x) * factor, y: zetaPath[belly].y + (p.y - zetaPath[belly].y) * factor }));
+
+test('a tail that curls smaller or larger than the model still finishes ζ', () => {
+  // Το μολύβι σηκώνεται μέσα ή έξω από το άγκιστρο του υποδείγματος, όχι πάνω του.
+  for (const factor of [0.5, 0.75, 1.25, 1.5]) assert.equal(zetaWith(scaledTail(factor)).type, 'complete', `tail x${factor}`);
+});
+
+test('ζ does not need the final flick of its hook, but it does need a tail', () => {
+  assert.equal(zetaWith(zetaPath.slice(belly, hook + 1)).type, 'complete');
+  for (const strictness of [0, 0.4]) assert.equal(zetaWith([], strictness).type, 'partial', `no tail @ ${strictness}`);
+});

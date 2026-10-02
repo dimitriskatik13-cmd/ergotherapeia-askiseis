@@ -31,6 +31,7 @@ const CLOSED_GAP = 0.05, WIDEST_TOLERANCE = 0.085, MIN_OWN_SHARE = 0.5, OWN_MARG
 // Such a stroke is mostly covered by the neighbour's ink alone, so it counts
 // as written only when the part that is its own has been written too.
 const OWN_NEED = 0.7, MIN_OWN_SAMPLES = 6;
+const LIFT_REACH = 1.5;
 
 function resample(points, n) {
   const total = pathLength(points);
@@ -319,7 +320,7 @@ class ShapeTracer {
     this.maxOffPathRatio = Math.min(0.16, 0.20 - 0.08 * s);
     // Optional length at each open end: a fixed reach, but never more than a
     // share of the stroke, so a short bar still has to be written.
-    const reach = 0.07 - 0.04 * s, share = 0.18 - 0.08 * s;
+    const reach = 0.12 - 0.06 * s, share = 0.18 - 0.08 * s;
     this.core = this.samples.map((points, i) => {
       const last = points.length - 1;
       const ownShare = this.own[i].filter(Boolean).length / (last + 1);
@@ -478,8 +479,10 @@ class ShapeTracer {
     const radiusSquared = this._tol() ** 2;
     // The leash lags behind a final hook; the last stride speaks for the tip.
     if (this.lastPointer && this.heading) { this.lead = null; this._mark(this.lastPointer, radiusSquared); }
+    // A hook or tail often curls a little inside or outside the model, so the
+    // lift may land one and a half tolerances away. A stray extension still fails.
     const endsOnShape = this.lastPointer && this.samples.some(points => points.some(p =>
-      (p.x - this.lastPointer.x) ** 2 + (p.y - this.lastPointer.y) ** 2 <= radiusSquared));
+      (p.x - this.lastPointer.x) ** 2 + (p.y - this.lastPointer.y) ** 2 <= radiusSquared * LIFT_REACH ** 2));
     // The follower trails the pointer; the slack it never walked is real ink.
     if (this.lastPointer && this.follower) {
       const slack = Math.hypot(this.lastPointer.x - this.follower.x, this.lastPointer.y - this.follower.y);
