@@ -25,9 +25,6 @@ export const LETTERS_UPPER = UPPER.map((d) => build(d, 'upper'));
 export const LETTERS_NUMBERS = NUMBERS.map((d) => build(d, 'numbers'));
 export const ALL_LETTERS = [...LETTERS_LOWER, ...LETTERS_UPPER, ...LETTERS_NUMBERS];
 
-// Κανονική σειρά ελληνικού αλφαβήτου (για ταξινόμηση πάνελ θεραπευτή).
-export const GREEK_ORDER = 'αβγδεζηθικλμνξοπρσςτυφχψω';
-
 export function lettersByCase(letterCase) {
   if (letterCase === 'upper') return LETTERS_UPPER;
   if (letterCase === 'numbers') return LETTERS_NUMBERS;
@@ -36,13 +33,6 @@ export function lettersByCase(letterCase) {
 
 export function findLetter(char, letterCase) {
   return lettersByCase(letterCase).find((l) => l.char === char) || null;
-}
-
-// Μοναδικά φωνήματα που χρειάζονται προφόρτωση (για service worker / audio cache).
-export function uniquePhonemeFiles() {
-  const set = new Set();
-  ALL_LETTERS.forEach((l) => set.add(l.phonemeAudio));
-  return [...set];
 }
 
 export { ZONES };

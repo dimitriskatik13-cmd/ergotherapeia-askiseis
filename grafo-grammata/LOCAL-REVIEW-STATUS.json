@@ -1,6 +1,6 @@
 {
-  "updated_at": "2026-09-29T19:48:49.710600+00:00",
-  "status": "local-fixes-tested-awaiting-device-user-review",
+  "updated_at": "2026-10-02T17:57:10+00:00",
+  "status": "review-fixes-1-2-3-5-6-8-12-18-23-24-and-end-tolerance-tested-committed-locally-not-pushed-awaiting-device-user-review",
   "public_deployment": false,
   "baseline_commit": "11b5d8e3cf29ed7aa2c8cb7c17100085586351ee",
   "backup_sha256": "e55c391fbc1677fc48b6838461375ae87a6912603ecdbf1af6604a82cbaa65d4",
@@ -9,11 +9,11 @@
     "upper.js": true,
     "_dsl.js": true
   },
-  "test_groups_passed": 89,
+  "test_groups_passed": 140,
   "direction_cases": 486,
   "physical_pencil_tested": false,
-  "local_review_url": "http://localhost:8796/?char=%CE%BA&case=lower",
-  "local_revision": "20260929-stress-fixes",
+  "local_review_url": "http://localhost:8797/?char=%CE%B1&case=lower",
+  "local_revision": "20261002-review-fixes",
   "r1_backup_sha256": "95cdf606059297004408b3ab66393db69382875010b748a8d20815afafc62018",
   "r1_baseline_checks": {
     "lower.js": true,
@@ -164,5 +164,8 @@
     296,
     235.5
   ],
-  "fix_backup_sha256": "661f6b5b7207ea17073592382abb15c596a4a0ebd6a092b4197fd7e092dddecd"
+  "fix_backup_sha256": "661f6b5b7207ea17073592382abb15c596a4a0ebd6a092b4197fd7e092dddecd",
+  "shape_check_fix_report": "../../../testing/grafo-shape-fix-20261002/REPORT.md",
+  "therapist_controls_report": "../../../testing/grafo-therapist-controls-20261002/REPORT.md",
+  "tolerance_cleanup_report": "../../../testing/grafo-tolerance-cleanup-20261002/REPORT.md"
 }

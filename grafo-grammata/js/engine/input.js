@@ -12,6 +12,8 @@
 //     γράφουν — η παλάμη που ακουμπά ανάμεσα στα γράμματα αγνοείται σιωπηλά.
 //   • Επαφές με μεγάλη επιφάνεια (πλάτος/ύψος επαφής) απορρίπτονται ως παλάμη.
 //   • Ρύθμιση θεραπευτή «Μόνο Pencil»: το δάχτυλο δεν γράφει καθόλου.
+//     Αν δεν γράφει κανένα Pencil εκείνη την ώρα, ειδοποιεί (onBlocked) ώστε η
+//     οθόνη να μη μοιάζει χαλασμένη. Η παλάμη δίπλα στο Pencil μένει σιωπηλή.
 //   • Δεύτερη ταυτόχρονη επαφή αγνοείται· pointercancel αναιρεί την πινελιά.
 // Η CSS ορίζει touch-action:none στο surface element.
 // ─────────────────────────────────────────────────────────────────────────────
@@ -26,7 +28,7 @@ const PALM_SIZE_PX = 55;     // επαφή πλατύτερη από τόσο �
 export class InputController {
   constructor(surface, handlers = {}) {
     this.surface = surface;
-    this.h = handlers;          // { onDown, onMove, onUp, onCancel }
+    this.h = handlers;          // { onDown, onMove, onUp, onCancel, onBlocked }
     this.enabled = false;
     this.penOnly = false;
     this.activeId = null;
@@ -72,7 +74,7 @@ export class InputController {
 
   _handleDown(e) {
     if (!this.enabled) return;
-    if (this.penOnly && e.pointerType !== 'pen') { e.preventDefault(); return; }
+    if (this.penOnly && e.pointerType !== 'pen') { e.preventDefault(); this._reportBlocked(e); return; }
     if (e.pointerType === 'pen') this.lastPenTs = Date.now();
     e.preventDefault();
     if (this.activeId !== null) {
@@ -92,6 +94,13 @@ export class InputController {
     this.activeType = e.pointerType;
     try { this.surface.el.setPointerCapture(e.pointerId); } catch (_) {}
     if (this.h.onDown) this.h.onDown(this._pt(e));
+  }
+
+  /** «Μόνο Pencil» χωρίς Pencil σε χρήση: το δάχτυλο δεν είναι παλάμη, πες το. */
+  _reportBlocked(e) {
+    const palm = (e.width || 0) > PALM_SIZE_PX || (e.height || 0) > PALM_SIZE_PX;
+    if (palm || this.activeId !== null || Date.now() - this.lastPenTs < PEN_STICKY_MS) return;
+    if (this.h.onBlocked) this.h.onBlocked();
   }
 
   _handleMove(e) {

@@ -14,7 +14,7 @@ test('stored target corruption recovers to valid targets and current character',
   assert.equal(normalizeSettings({targetLetters:['β'],currentChar:'α'}).currentChar,'β');
 });
 test('only whitelisted keys, types and enums survive while valid preferences remain',()=>{
-  const good={case:'numbers',currentChar:'17',targetLetters:['17','31'],mode:'free',strictness:.23,penWidth:.025,pressure:true,penOnly:true,letterSize:.91,lines:'none',animSpeed:.17,hand:'left'};
+  const good={case:'numbers',currentChar:'17',targetLetters:['17','31'],mode:'free',strictness:.23,penWidth:.025,pressure:true,penOnly:true,letterSize:.91,lines:'none',animSpeed:.17,hand:'left',reps:3};
   assert.deepEqual(normalizeSettings({...good,helpLevel:3,privateField:'remove'}),good);
   const invalid={case:'bad',mode:'bad',lines:'bad',hand:'bad',pressure:'true',penOnly:1,letterSize:'bad',penWidth:null,strictness:NaN,animSpeed:Infinity};
   assert.deepEqual(normalizeSettings(invalid),DEFAULTS);

@@ -1,6 +1,9 @@
 // Same two-second visual reward as Χτίζω πρόταση, with the completed ink
 // retained on the far right until the next letter or an explicit clear.
-import { drawGuideLetter } from './engine/guide.js';
+import { drawGuideLetter, GUIDE_WIDTH } from './engine/guide.js';
+
+// Το πιο παχύ σημείο της γραμμής με πίεση Pencil, ως προς το βασικό πάχος (βλ. Pencil._w).
+const PRESSURE_REACH = 1.6;
 
 export class Feedback {
   constructor(surface, hintEl) {
@@ -28,32 +31,46 @@ export class Feedback {
     }
   }
 
-  showCompleted(letter) {
+  /**
+   * Device-pixel box around the model and the ink, taken from their points.
+   * Reading every pixel of a Retina canvas to find it stalled the reward.
+   */
+  _bounds(letter, strokes) {
+    const { map, dpr } = this.surface, ink = this.surface.layers.ink;
+    let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
+    const grow = (points, reach) => {
+      for (const p of points) {
+        const x = map.tx(p.x), y = map.ty(p.y);
+        left = Math.min(left, x - reach); right = Math.max(right, x + reach);
+        top = Math.min(top, y - reach); bottom = Math.max(bottom, y + reach);
+      }
+    };
+    for (const stroke of letter.strokes) grow(stroke.points, map.s(GUIDE_WIDTH) / 2);
+    for (const stroke of strokes) {
+      grow(stroke.points, map.s(stroke.opts?.baseWidth ?? 0.018) * (stroke.opts?.pressure ? PRESSURE_REACH : 1) / 2);
+    }
+    const pad = 4;
+    left = Math.max(0, Math.floor(left * dpr) - pad); top = Math.max(0, Math.floor(top * dpr) - pad);
+    right = Math.min(ink.width, Math.ceil(right * dpr) + pad); bottom = Math.min(ink.height, Math.ceil(bottom * dpr) + pad);
+    return right > left && bottom > top ? { left, top, width: right - left, height: bottom - top } : null;
+  }
+
+  showCompleted(letter, strokes = []) {
     this._preview?.remove();
     const ink = this.surface.layers.ink;
-    // Compose the original model and the child's ink in the SAME coordinate
-    // system, then crop their union. Never move/scale either layer independently.
-    const source = document.createElement('canvas');
-    source.width = ink.width; source.height = ink.height;
-    const composite = source.getContext('2d');
-    composite.save();
-    composite.scale(this.surface.dpr, this.surface.dpr);
-    drawGuideLetter(composite, letter, this.surface.map);
-    composite.restore();
-    composite.drawImage(ink, 0, 0);
-    const image = composite.getImageData(0, 0, source.width, source.height);
-    let left=source.width, top=source.height, right=-1, bottom=-1;
-    for (let y=0; y<source.height; y++) for (let x=0; x<source.width; x++) {
-      if (!image.data[(y*source.width+x)*4+3]) continue;
-      left=Math.min(left,x); right=Math.max(right,x); top=Math.min(top,y); bottom=Math.max(bottom,y);
-    }
+    const box = this.surface.map ? this._bounds(letter, strokes) : null;
     const canvas = document.createElement('canvas');
-    if (right >= left) {
-      const pad=4;
-      left=Math.max(0,left-pad); top=Math.max(0,top-pad);
-      right=Math.min(source.width-1,right+pad); bottom=Math.min(source.height-1,bottom+pad);
-      canvas.width=right-left+1; canvas.height=bottom-top+1;
-      canvas.getContext('2d').drawImage(source,left,top,canvas.width,canvas.height,0,0,canvas.width,canvas.height);
+    if (box) {
+      // Draw the original model and the child's ink in the SAME coordinate
+      // system, cropped to their union. Never move/scale either independently.
+      canvas.width = box.width; canvas.height = box.height;
+      const ctx = canvas.getContext('2d');
+      ctx.translate(-box.left, -box.top);
+      ctx.save();
+      ctx.scale(this.surface.dpr, this.surface.dpr);
+      drawGuideLetter(ctx, letter, this.surface.map);
+      ctx.restore();
+      ctx.drawImage(ink, 0, 0);
     } else {
       // A temporarily hidden/resizing surface can be empty. It is redrawn on show.
       canvas.width = canvas.height = 1;
@@ -66,9 +83,9 @@ export class Feedback {
     this.surface.el.classList.add('has-completion-preview');this._preview=preview;
   }
 
-  celebrate(letter) {
+  celebrate(letter, strokes) {
     this.stop();
-    this.showCompleted(letter);
+    this.showCompleted(letter, strokes);
     const reduced=matchMedia('(prefers-reduced-motion: reduce)').matches;
     const layer=document.createElement('div');layer.className='success-celebration'+(reduced?' reduced':'');
     layer.setAttribute('role','status');layer.setAttribute('aria-live','polite');
@@ -87,6 +104,5 @@ export class Feedback {
     this._layer?.remove();this._layer=null;
     this._preview?.remove();this._preview=null;
     this.surface.el.classList.remove('has-completion-preview');
-    this.surface.clear('fx');
   }
 }

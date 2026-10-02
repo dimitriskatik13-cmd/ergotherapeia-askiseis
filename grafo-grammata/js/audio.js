@@ -74,6 +74,16 @@ export class Phonemes {
     }));
   }
 
+  /**
+   * Ένας ήχος έτοιμος για το επόμενο πάτημα του 🔊. Οι υπόλοιποι φορτώνονται
+   * όταν ζητηθούν, αντί να κατεβαίνουν όλοι στη μνήμη σε κάθε εκκίνηση.
+   */
+  async warm(name) {
+    const key = this._key(name);
+    for (const other of this.raw.keys()) if (other !== key) this.raw.delete(other);
+    await this.preload([name]);
+  }
+
   async _ensure(key) {
     if (!this.useWebAudio) { this._audioElement(key); return; }
     if (this.buffers.has(key)) return;

@@ -19,6 +19,7 @@ export const DEFAULTS = {
   lines: 'double',        // 'none' | 'single' | 'double'
   animSpeed: 0.5,         // ταχύτητα επίδειξης 0..1
   hand: 'right',          // 'right' | 'left'
+  reps: 1,                // επαναλήψεις ανά γράμμα πριν το «Επόμενο»: 1 | 3 | 5
 };
 
 /** Retain valid preferences, but never trust persisted types or old target sets. */
@@ -34,6 +35,7 @@ export function normalizeSettings(value) {
     if (Number.isFinite(source[key])) data[key] = Math.max(min, Math.min(max, source[key]));
   }
   for (const key of ['pressure', 'penOnly']) if (typeof source[key] === 'boolean') data[key] = source[key];
+  if ([1, 3, 5].includes(source.reps)) data.reps = source.reps;
   const letters = lettersByCase(data.case);
   const validChars = new Set(letters.map(letter => letter.char));
   if (Array.isArray(source.targetLetters)) {
@@ -69,6 +71,11 @@ class Store {
     this.data = normalizeSettings({ ...this.data, ...patch });
     this.save();
     this.subs.forEach((cb) => cb(this.data, patch));
+  }
+  /** Προεπιλογές για τον επόμενο θεραπευτή, χωρίς να αλλάξει οθόνη ή γράμμα. */
+  resetPreferences() {
+    const { case: kind, currentChar, mode } = this.data;
+    this.update({ ...DEFAULTS, case: kind, currentChar, mode });
   }
   subscribe(cb) { this.subs.add(cb); return () => this.subs.delete(cb); }
 }

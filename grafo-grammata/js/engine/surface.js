@@ -1,15 +1,14 @@
 // ─────────────────────────────────────────────────────────────────────────────
-// Surface — διαχειρίζεται τρία στοιβαγμένα canvases με σωστό devicePixelRatio
+// Surface — διαχειρίζεται δύο στοιβαγμένα canvases με σωστό devicePixelRatio
 // scaling (καθαρή γραμμή σε Retina) και κοινή αντιστοίχιση normalized↔pixels:
 //   guide  : γραμμές τετραδίου, αχνός οδηγός, αριθμοί, βέλη (στατικό)
 //   ink    : η γραφή του παιδιού + animation «μολυβιού»
-//   fx     : διακριτική επιβράβευση (glow, μπαλόνια)
 // ─────────────────────────────────────────────────────────────────────────────
 export class Surface {
   constructor(container) {
     this.el = container;
     this.layers = {};
-    ['guide', 'ink', 'fx'].forEach((name, i) => {
+    ['guide', 'ink'].forEach((name, i) => {
       const cv = document.createElement('canvas');
       cv.className = `surf-layer surf-${name}`;
       cv.style.zIndex = String(i + 1);

@@ -98,6 +98,11 @@ export function buildSettings({ store, onOpenApproval }) {
     inner.appendChild(slider(s.case === 'numbers' ? 'Αυστηρότητα ελέγχου' : 'Ακρίβεια σχήματος', 'Χαλαρό', 'Αυστηρό',
       () => store.get('strictness'), (v) => store.set('strictness', v)));
 
+    // Επαναλήψεις ανά γράμμα (κουκκίδες στο χαρτί μετά το «Μπράβο»)
+    inner.appendChild(segmented(s.case === 'numbers' ? 'Επαναλήψεις ανά αριθμό' : 'Επαναλήψεις ανά γράμμα',
+      [{ label: '1', value: 1 }, { label: '3', value: 3 }, { label: '5', value: 5 }],
+      () => store.get('reps'), (v) => store.set('reps', v)));
+
     inner.appendChild(el('div', { class: 'panel__sep' }, ['Διαβάθμιση']));
 
     // Πάχος
@@ -141,6 +146,12 @@ export function buildSettings({ store, onOpenApproval }) {
     inner.appendChild(el('button', {
       class: 'btn btn--ghost btn--block', type: 'button', onclick: () => { close(); onOpenApproval(); },
     }, ['🔎 Έγκριση φοράς (προεπισκόπηση)']));
+
+    // Επαναφορά: κοινόχρηστο iPad, επόμενος θεραπευτής
+    inner.appendChild(el('button', {
+      class: 'btn btn--ghost btn--block panel__reset', type: 'button', id: 'settings-reset',
+      onclick: () => { store.resetPreferences(); rebuild(); },
+    }, ['Επαναφορά ρυθμίσεων']));
 
     inner.appendChild(el('p', { class: 'hintnote hintnote--muted' }, [
       `Δεν αποθηκεύεται κανένα δεδομένο παιδιού. Οι ρυθμίσεις μένουν τοπικά στη συσκευή.`,

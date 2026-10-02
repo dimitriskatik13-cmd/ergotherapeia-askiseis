@@ -7,8 +7,9 @@ import { Feedback } from './feedback.js';
 import { Session } from './session.js';
 import { buildSettings } from './ui/settings.js';
 import { buildApproval } from './ui/approval.js';
+import { buildPicker } from './ui/picker.js';
 import { el, clear } from './ui/dom.js';
-import { lettersByCase, findLetter, uniquePhonemeFiles } from './letters/index.js';
+import { lettersByCase, findLetter } from './letters/index.js';
 
 const MODES = [
   { value: 'demo', label: 'Δείξε μου' },
@@ -38,7 +39,9 @@ function bootstrap() {
   }
   const homeBtn = el('button', {class:'btn btn--home',type:'button',id:'home-button'}, [icon('ic-home'),'Αρχική']);
   const gear = el('button', {class:'btn btn--settings',type:'button','aria-label':'Ρυθμίσεις'}, [icon('ic-sliders'),'Ρυθμίσεις']);
-  const toolbar = el('nav', {class:'activity-toolbar','aria-label':'Πλοήγηση δραστηριότητας'}, [homeBtn,gear]);
+  // Ορατό μόνο όταν το δάχτυλο δεν γράφει, για να μη μοιάζει η οθόνη χαλασμένη.
+  const penOnlyNote = el('span', {class:'toolbar-note',id:'pen-only-note'}, ['Μόνο Pencil']);
+  const toolbar = el('nav', {class:'activity-toolbar','aria-label':'Πλοήγηση δραστηριότητας'}, [homeBtn,gear,penOnlyNote]);
 
   // ── Backdrop (soft organic μπαλόνια) ─────────────────────────────────────────
   const backdrop = el('div', { class: 'backdrop', 'aria-hidden': 'true' }, [
@@ -48,10 +51,18 @@ function bootstrap() {
 
   // ── Paper (writing surface) ──────────────────────────────────────────────────
   const hint = el('div', { class: 'hint', id: 'hint', role: 'status', 'aria-live': 'polite' });
-  const paper = el('section', { class: 'paper', id: 'paper' }, [hint]);
+  // Μετά το «Μπράβο»: το παιδί συνεχίζει μόνο του, χωρίς να ψάχνει στο πλάι.
+  const againBtn = el('button', { class: 'btn', type: 'button', id: 'paper-again' }, [icon('ic-refresh'), 'Ξανά']);
+  const nextPaperBtn = el('button', { class: 'btn', type: 'button', id: 'paper-next' }, ['Επόμενο', el('span', { 'aria-hidden': 'true' }, ['▶'])]);
+  const repDots = el('div', { class: 'paper-reps', role: 'img' });
+  const paperActions = el('div', { class: 'paper-actions', id: 'paper-actions' }, [
+    repDots, el('div', { class: 'paper-actions__buttons' }, [againBtn, nextPaperBtn]),
+  ]);
+  paperActions.hidden = true;
+  const paper = el('section', { class: 'paper', id: 'paper' }, [hint, paperActions]);
 
   // ── Rail (έλεγχοι θεραπευτή) ─────────────────────────────────────────────────
-  const bigLetter = el('div', { class: 'rail__char' });
+  const bigLetter = el('button', { class: 'rail__char', type: 'button', id: 'pick-letter', 'aria-haspopup': 'dialog' });
   const prevBtn = el('button', { class: 'navbtn', 'aria-label': 'Προηγούμενο γράμμα' }, ['◀']);
   const nextBtn = el('button', { class: 'navbtn', 'aria-label': 'Επόμενο γράμμα' }, ['▶']);
   const letterRow = el('div', { class: 'rail__letterrow' }, [prevBtn, bigLetter, nextBtn]);
@@ -94,12 +105,39 @@ function bootstrap() {
   const session = new Session(paper, phonemes, hint, feedback);
   feedback.surface = session.surface;        // ο feedback χρειάζεται το ίδιο surface
 
-  session.onComplete = () => { doneBtn.classList.add('is-done'); };
+  // ── Μετά την ολοκλήρωση: «Ξανά» / «Επόμενο» πάνω στο χαρτί ──────────────────
+  const REWARD_MS = 2000;     // όσο κρατά το «Μπράβο»· τα κουμπιά δεν το σκεπάζουν
+  let repsDone = 0, actionsTimer = null;
+  function hidePaperActions() {
+    clearTimeout(actionsTimer); actionsTimer = null;
+    paperActions.hidden = true;
+  }
+  function showPaperActions() {
+    actionsTimer = null;
+    if (!session.completed) return;
+    const data = store.all(), reps = data.reps, done = Math.min(repsDone, reps);
+    const hasNext = activeList(data).length > 1;
+    // Όσο μένουν επαναλήψεις προτείνεται το «Ξανά», μετά το «Επόμενο».
+    const again = done < reps || !hasNext;
+    againBtn.className = 'btn ' + (again ? 'btn--cta' : 'btn--ghost');
+    nextPaperBtn.className = 'btn ' + (again ? 'btn--ghost' : 'btn--cta');
+    nextPaperBtn.hidden = !hasNext;
+    repDots.hidden = reps === 1;
+    repDots.setAttribute('aria-label', `${done} από ${reps}`);
+    repDots.replaceChildren(...Array.from({ length: reps }, (_, i) => el('span', { class: i < done ? 'is-done' : '' })));
+    paperActions.hidden = false;
+  }
+  session.onComplete = () => {
+    doneBtn.classList.add('is-done');
+    repsDone++;
+    clearTimeout(actionsTimer);
+    actionsTimer = setTimeout(showPaperActions, REWARD_MS);
+  };
+  function writeAgain() { hidePaperActions(); doneBtn.classList.remove('is-done'); session.clearInk(); }
 
-  // Ξεκλείδωμα ήχου στο πρώτο άγγιγμα + προθέρμανση cache φωνημάτων.
+  // Ξεκλείδωμα ήχου στο πρώτο άγγιγμα. Ο ήχος κάθε γράμματος ετοιμάζεται όταν εμφανίζεται.
   const unlockOnce = () => { phonemes.unlock(); window.removeEventListener('pointerdown', unlockOnce); };
   window.addEventListener('pointerdown', unlockOnce, { once: true });
-  phonemes.preload(uniquePhonemeFiles());
 
   // ── Settings panel + Approval ────────────────────────────────────────────────
   const approval = buildApproval(store);
@@ -111,15 +149,19 @@ function bootstrap() {
   // ── Actions ──────────────────────────────────────────────────────────────────
   function selectMode(mode) {
     if (mode === 'trace' && store.get('mode') === 'trace') {
+      hidePaperActions();
       session.clearInk();
       updateUI(store.all());
       return;
     }
+    // Δεύτερο πάτημα στο «Δείξε μου» ξαναπαίζει την επίδειξη.
+    if (mode === 'demo' && store.get('mode') === 'demo') { session.replayDemo(); return; }
     store.set('mode', mode);
   }
 
   doneBtn.addEventListener('click', () => session.completeByTherapist());
-  clearBtn.addEventListener('click', () => { doneBtn.classList.remove('is-done'); session.clearInk(); });
+  clearBtn.addEventListener('click', writeAgain);
+  againBtn.addEventListener('click', writeAgain);
   phonBtn.addEventListener('click', () => session.repeatPhoneme());
   replayBtn.addEventListener('click', () => session.replayDemo());
 
@@ -132,11 +174,24 @@ function bootstrap() {
   }
   prevBtn.addEventListener('click', () => stepLetter(-1));
   nextBtn.addEventListener('click', () => stepLetter(1));
+  nextPaperBtn.addEventListener('click', () => stepLetter(1));
+
+  // ── Γρήγορη επιλογή: πάτημα στο μεγάλο γράμμα ────────────────────────────────
+  const picker = buildPicker({
+    getList: () => activeList(store.all()),
+    getCurrent: () => store.get('currentChar'),
+    isNumbers: () => store.get('case') === 'numbers',
+    onPick: (char) => store.set('currentChar', char),
+  });
+  document.body.appendChild(picker.overlay);
+  bigLetter.addEventListener('click', picker.open);
 
   // ── UI sync ──────────────────────────────────────────────────────────────────
   function updateUI(data) {
     bigLetter.textContent = data.currentChar;
     const isNumber = data.case === 'numbers';
+    bigLetter.setAttribute('aria-label', `${isNumber ? 'Επιλογή αριθμού' : 'Επιλογή γράμματος'}: ${data.currentChar}`);
+    penOnlyNote.hidden = !data.penOnly;
     prevBtn.setAttribute('aria-label', isNumber ? 'Προηγούμενος αριθμός' : 'Προηγούμενο γράμμα');
     nextBtn.setAttribute('aria-label', isNumber ? 'Επόμενος αριθμός' : 'Επόμενο γράμμα');
     phonBtn.replaceChildren(icon('ic-speaker'), document.createTextNode(isNumber ? 'Άκουσε' : 'Φώνημα'));
@@ -149,13 +204,20 @@ function bootstrap() {
     doneBtn.classList.toggle('is-done', session.completed);
     document.body.classList.toggle('hand-left', data.hand === 'left');
     const many = activeList(data).length > 1;
-    prevBtn.disabled = nextBtn.disabled = !many;
+    prevBtn.disabled = nextBtn.disabled = bigLetter.disabled = !many;
+    if (!paperActions.hidden) showPaperActions();
   }
 
   function react(data, patch) {
     session.applySettings(data);
     const restart = !patch || ('currentChar' in patch) || ('mode' in patch) || ('case' in patch) || ('targetLetters' in patch);
-    if (restart) session.configure({ letter: currentLetter(data), mode: data.mode });
+    if (restart) {
+      const before = session.letter, mode = session.mode;
+      session.configure({ letter: currentLetter(data), mode: data.mode });
+      // Νέο γράμμα ή τρόπος: οι επαναλήψεις μετρούν από την αρχή.
+      if (session.letter !== before || session.mode !== mode) { repsDone = 0; hidePaperActions(); }
+      if (session.letter !== before) phonemes.warm(session.letter.phonemeAudio);
+    }
     updateUI(data);
   }
 
@@ -179,7 +241,7 @@ function bootstrap() {
     phonemes.stop();
     session._interruptStroke(true);
     session.input.disable(); session._stopAnim(); feedback.stop();
-    settings.close(); approval.close();
+    settings.close(); approval.close(); picker.close();
     activity.hidden = true; home.hidden = false; document.body.classList.add('is-home');
     home.querySelector('h1').focus();
   }

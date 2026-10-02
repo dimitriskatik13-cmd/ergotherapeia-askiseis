@@ -18,7 +18,7 @@ const ASSETS = [
   'js/engine/surface.js', 'js/engine/input.js', 'js/engine/pencil.js',
   'js/engine/tracer.js', 'js/engine/animator.js', 'js/engine/guide.js',
   'js/letters/_dsl.js', 'js/letters/lower.js', 'js/letters/upper.js', 'js/letters/numbers.js', 'js/letters/index.js',
-  'js/ui/dom.js', 'js/ui/settings.js', 'js/ui/approval.js',
+  'js/ui/dom.js', 'js/ui/settings.js', 'js/ui/approval.js', 'js/ui/picker.js',
   'brand_assets/fonts/Comfortaa.woff2', 'brand_assets/fonts/Inter.woff2',
   'brand_assets/logo/synoida-logo.webp', 'brand_assets/logo/synoida-icon-pwa.png',
   ...PHONEMES.map((p) => `sounds/${p}.wav`),

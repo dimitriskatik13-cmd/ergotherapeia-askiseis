@@ -48,6 +48,11 @@ export class Animator {
     this.raf = null;
   }
 
+  /** Η τελειωμένη επίδειξη ξανά, στο τρέχον μέγεθος. Όσο παίζει, το κάνει κάθε καρέ. */
+  redraw() {
+    if (!this.raf && this.startT != null) this._render(Infinity, 0);
+  }
+
   _render(budget, pausePerStroke) {
     const surf = this.surface;
     const map = surf.map;

@@ -69,8 +69,11 @@ export function drawNotebookLines(ctx, w, h, map, zones, type = 'double') {
   lineAt((zones.xHeightTop + zones.baseline) / 2, true, false);
 }
 
+/** Πάχος του αχνού οδηγού, σε μονάδες γράμματος. */
+export const GUIDE_WIDTH = 0.045;
+
 /** Αχνό γράμμα-οδηγό (παχιά απαλή διαδρομή). */
-export function drawGuideLetter(ctx, letter, map, { color = PALETTE.grey, alpha = 0.18, width = 0.045 } = {}) {
+export function drawGuideLetter(ctx, letter, map, { color = PALETTE.grey, alpha = 0.18, width = GUIDE_WIDTH } = {}) {
   ctx.save();
   ctx.lineCap = 'round';
   ctx.lineJoin = 'round';

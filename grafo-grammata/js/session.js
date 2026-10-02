@@ -9,8 +9,6 @@ import { Pencil } from './engine/pencil.js';
 import { Tracer } from './engine/tracer.js';
 import { Animator } from './engine/animator.js';
 import { renderGuide, letterContentBottom } from './engine/guide.js';
-import { GREEK_ORDER } from './letters/index.js';
-import { STROKE_COLORS, PALETTE } from './palette.js';
 
 const INK_COLOR = '#3a3f45';
 
@@ -32,10 +30,12 @@ export class Session {
       onMove: (ps) => this._move(ps),
       onUp: (p) => this._up(p),
       onCancel: () => this._interruptStroke(),
+      onBlocked: () => this.feedback.hint('Γράφει μόνο το Pencil ✏️'),
     });
-    this._undo = null;        // offscreen canvas για αναίρεση πινελιάς (παλάμη)
-    this._undoValid = false;
     this._tracerSnap = null;
+    this._inkSnap = null;
+    this._inkStale = false;   // η προσπάθεια απορρίφθηκε: η μελάνη της δεν μετρά πια
+    this._armsSeen = null;
     this.surface.onResize(() => this._redrawAll());
   }
 
@@ -52,17 +52,11 @@ export class Session {
       this.tracer.setToleranceFloor(12 / this.surface.map.side);
     }
     this._redrawGuide();
+    if (sizeChanged && this.mode === 'demo') this.animator?.redraw();
     if (sizeChanged && this.mode !== 'demo') {
       if (this.pencil) { this._interruptStroke(true); this.input.disable(); if (!this.completed) this.input.enable(); }
       this._redrawInk();
     }
-  }
-
-  accentFor(letter) {
-    let i = GREEK_ORDER.indexOf(letter.char.toLowerCase());
-    if (i < 0) i = parseInt(letter.char, 10); // αριθμοί: χρώμα από την τιμή τους
-    if (!Number.isFinite(i) || i < 0) i = 0;
-    return STROKE_COLORS[i % STROKE_COLORS.length];
   }
 
   setLetter(letter) {
@@ -91,13 +85,14 @@ export class Session {
     this._stopAnim();
     this.surface.setContentBottom(letterContentBottom(this.letter));
     this.surface.clear('ink');
-    this.surface.clear('fx');
     this.feedback.stop();
     this.feedback.clearHint();
     this.completed = false;
     this.pencil = null;
     this.inkHistory = [];
     this.activeStroke = null;
+    this._setInkStale(false);
+    this._armsSeen = null;
 
     const tracerActive = this.mode === 'trace';
     this.tracer = tracerActive ? new Tracer(this.letter, this.settings.strictness) : null;
@@ -154,7 +149,7 @@ export class Session {
         if (!this.completed) this.input.enable();
       }
       this._redrawInk();
-      if (this.completed) this.feedback?.showCompleted?.(this.letter);
+      if (this.completed) this.feedback?.showCompleted?.(this.letter, this.inkHistory);
     }
   }
 
@@ -163,20 +158,31 @@ export class Session {
     if (this.completed) return;
     // Στιγμιότυπο ΠΡΙΝ την πινελιά — αν αποδειχθεί «παλάμη» (έρθει Pencil ή
     // pointercancel), αναιρείται πλήρως: μελάνη ΚΑΙ πρόοδος ιχνηλάτησης.
-    this._snapshotInk();
     this._tracerSnap = this.tracer ? this.tracer.snapshot() : null;
+    this._inkSnap = { history: this.inkHistory, stale: this._inkStale, arms: this._armsSeen };
+    // Η απορριφθείσα προσπάθεια έμεινε αχνή ως εδώ. Η νέα γραφή ξεκινά καθαρή,
+    // όπως ακριβώς ξεκινά από την αρχή και ο έλεγχος.
+    if (this._inkStale) {
+      this.inkHistory = [];
+      this.surface.clear('ink');
+      this._setInkStale(false);
+    }
+    let hint = null;
+    if (this.tracer) {
+      hint = this.tracer.beginTouch(p);
+      this._dropRearmedInk();
+    }
     this.pencil = new Pencil(this.surface.ctx('ink'), this.surface.map, {
       color: INK_COLOR,
       baseWidth: this.settings.penWidth,
       pressure: this.settings.pressure,
     });
-    this.activeStroke = {points:[{...p}],opts:{color:INK_COLOR,baseWidth:this.settings.penWidth,pressure:this.settings.pressure}};
+    this.activeStroke = {points:[{...p}],opts:{color:INK_COLOR,baseWidth:this.settings.penWidth,pressure:this.settings.pressure},group:this.tracer?.active};
     this.pencil.begin(p);
     this.feedback.clearHint();
     if (this.tracer) {
-      const h = this.tracer.beginTouch(p);
       this.tracer.feed([p]);           // το σημείο εκκίνησης μετράει στην κάλυψη
-      if (h && h.msg) this.feedback.hint(h.msg);
+      if (hint && hint.msg) this.feedback.hint(hint.msg);
     }
   }
 
@@ -193,36 +199,49 @@ export class Session {
     if (!this.pencil) return;
     this.pencil.extend([p]); // Include the actual lift position, even without a final move event.
     this.pencil.end();
-    if (this.activeStroke) {
-      this.activeStroke.points.push({...p});
-      this.inkHistory.push(this.activeStroke);
+    const finished = this.activeStroke;
+    if (finished) {
+      finished.points.push({...p});
+      this.inkHistory.push(finished);
       this.activeStroke = null;
     }
     this.pencil = null;
-    this._undoValid = false;           // η πινελιά «έκατσε» — δεν αναιρείται πια
-    this._tracerSnap = null;
+    this._tracerSnap = null;           // η πινελιά «έκατσε» — δεν αναιρείται πια
+    this._inkSnap = null;
     if (this.tracer && !this.completed) {
       this.tracer.feed([p]);           // το τελικό σημείο μετράει στην κάλυψη
       const r = this.tracer.endTouch();
+      this._dropRearmedInk(finished);
       if (r && r.type === 'complete') this._completeInternal();
-      else if (r && r.msg) this.feedback.hint(r.msg);
+      else {
+        if (r && r.restart) this._setInkStale(true);
+        if (r && r.msg) this.feedback.hint(r.msg);
+      }
     }
+  }
+
+  // ── Η μελάνη ακολουθεί την πρόοδο του ελέγχου ──────────────────────────────
+  // Ό,τι φαίνεται σκούρο στο χαρτί μετρά. Όταν ο έλεγχος ξεκινά από την αρχή,
+  // η παλιά μελάνη δεν μένει να δείχνει ένα «έτοιμο» γράμμα που δεν εγκρίνεται.
+  _setInkStale(stale) {
+    this._inkStale = stale;
+    this.surface.el.classList.toggle('has-stale-ink', stale);
+  }
+
+  /** Αριθμοί: κίνηση που ξαναρχίζει αφήνει πίσω τη μελάνη της παλιάς απόπειρας. */
+  _dropRearmedInk(current = null) {
+    const arms = this.tracer.arms;
+    if (!arms) return;
+    const seen = this._armsSeen || [];
+    const rearmed = new Set(arms.flatMap((count, i) => (count !== (seen[i] || 0) ? [i] : [])));
+    this._armsSeen = arms.slice();
+    const kept = this.inkHistory.filter((stroke) => stroke === current || !rearmed.has(stroke.group));
+    if (kept.length === this.inkHistory.length) return;
+    this.inkHistory = kept;
+    this._redrawInk();
   }
 
   // ── Αναίρεση τυχαίας πινελιάς (παλάμη / pointercancel) ─────────────────────
-  _snapshotInk() {
-    const ink = this.surface.layers.ink;
-    if (!this._undo) this._undo = document.createElement('canvas');
-    if (this._undo.width !== ink.width || this._undo.height !== ink.height) {
-      this._undo.width = ink.width;
-      this._undo.height = ink.height;
-    } else {
-      this._undo.getContext('2d').clearRect(0, 0, this._undo.width, this._undo.height);
-    }
-    this._undo.getContext('2d').drawImage(ink, 0, 0);
-    this._undoValid = true;
-  }
-
   // Keep real handwriting on capture loss/rotation. Only a cancelled touch
   // (potential palm) is rolled back. Interruption never approves the letter.
   _interruptStroke(preserveTouch = false) {
@@ -235,8 +254,8 @@ export class Session {
     if (this.activeStroke) this.inkHistory.push(this.activeStroke);
     this.activeStroke = null;
     this.pencil = null;
-    this._undoValid = false;
     this._tracerSnap = null;
+    this._inkSnap = null;
     if (this.tracer) this.tracer.touchAllowed = false;
     this.feedback.clearHint();
   }
@@ -245,18 +264,17 @@ export class Session {
     if (!this.pencil) return;
     this.activeStroke = null;
     this.pencil = null;
-    if (this._undoValid) {
-      const ink = this.surface.layers.ink;
-      const ctx = ink.getContext('2d');
-      ctx.save();
-      ctx.setTransform(1, 0, 0, 1, 0, 0);
-      ctx.clearRect(0, 0, ink.width, ink.height);
-      ctx.drawImage(this._undo, 0, 0);
-      ctx.restore();
-      this._undoValid = false;
-    }
     if (this.tracer && this._tracerSnap) this.tracer.restore(this._tracerSnap);
     this._tracerSnap = null;
+    // Το άγγιγμα δεν έγινε ποτέ: γυρίζει πίσω και ό,τι καθάρισε ξεκινώντας.
+    if (this._inkSnap) {
+      this.inkHistory = this._inkSnap.history;
+      this._armsSeen = this._inkSnap.arms;
+      this._setInkStale(this._inkSnap.stale);
+      this._inkSnap = null;
+    }
+    // Οι τελειωμένες πινελιές ξαναγράφονται από το ιστορικό· η ακυρωμένη όχι.
+    this._redrawInk();
     this.feedback.clearHint();
   }
 
@@ -277,12 +295,13 @@ export class Session {
     this.input.disable();
     this.feedback.clearHint();
     this._stopAnim();
+    this._setInkStale(false);
     this._celebrate();
     if (this.onComplete) this.onComplete(this.letter);
   }
 
   _celebrate() {
-    this.feedback.celebrate(this.letter);
+    this.feedback.celebrate(this.letter, this.inkHistory);
   }
 
   /** Το ΜΟΝΟ σημείο που παίζει φώνημα: το κουμπί 🔊 Φώνημα του θεραπευτή. */
@@ -307,10 +326,11 @@ export class Session {
     this.inkHistory = [];
     this._stopAnim();
     this.surface.clear('ink');
-    this.surface.clear('fx');
     this.feedback.stop();
     this.feedback.clearHint();
     this.completed = false;
+    this._setInkStale(false);
+    this._armsSeen = null;
     if (this.tracer) this.tracer.reset();
     if (this.mode !== 'demo') this.input.enable();
     this._redrawGuide();
