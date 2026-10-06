@@ -326,3 +326,7 @@ body.is-home .backdrop {display:none;}
 @media (max-width: 360px) {
   .modebtn { font-size: 13px; }
 }
+
+/* Μόνο με ?debug: τι είδε ο έλεγχος στο τελευταίο σήκωμα. */
+.debug-readout { position: fixed; left: 8px; right: 8px; bottom: 4px; z-index: 80; padding: 4px 10px; border-radius: 8px; background: rgba(38, 50, 68, .88); color: #fff; font: 600 12px/1.4 var(--font-ui); pointer-events: none; }
+.debug-readout:empty { display: none; }

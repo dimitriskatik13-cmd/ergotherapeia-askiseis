@@ -1,2 +1,2 @@
 // Internal release marker; not displayed in the application.
-export const APP_VERSION = 27;
+export const APP_VERSION = 28;

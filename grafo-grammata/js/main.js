@@ -301,7 +301,47 @@ function bootstrap() {
         return s.layers.ink.getContext('2d').getImageData(X, Y, 1, 1).data[3];
       },
       done: () => session.completed,
+      lifts: [],
     };
+    // Τι είδε ο έλεγχος σε κάθε σήκωμα: για διάγνωση «έγραψα σωστά και δεν το έπιασε».
+    const readout = el('div', { class: 'debug-readout', id: 'debug-readout' });
+    document.body.appendChild(readout);
+    let strokeActive = false;
+    const before = () => { strokeActive = session.input.activeId !== null; };
+    const after = (event) => {
+      if (!strokeActive && event.type !== 'pointerup') return;
+      const t = session.tracer, side = session.surface.map.side, last = t?.lastPointer;
+      const entry = { event: event.type, pointer: event.pointerType, wasWriting: strokeActive, completed: session.completed };
+      if (t && t.coreLength) {
+        const tol = t._tol(), lift = last ? Math.min(...t.samples.flat().map((q) => Math.hypot(q.x - last.x, q.y - last.y))) : null;
+        Object.assign(entry, {
+          coverage: t.samples.map((_, i) => Math.round(t.coverage(i) * 100)), need: Math.round(t.coverNeed * 100),
+          liftPx: lift === null ? null : Math.round(lift * side), liftMaxPx: Math.round(tol * 1.5 * side),
+          travel: +(t.travel / t.coreLength).toFixed(2), offShape: +t.offPathTravel.toFixed(3),
+          offShapeMax: +Math.max(0.10, t.totalLength * t.maxOffPathRatio).toFixed(3), restart: t.retry, sidePx: Math.round(side),
+        });
+      }
+      entry.outcome = entry.completed ? 'ΟΛΟΚΛΗΡΩΘΗΚΕ'
+        : event.type !== 'pointerup' ? 'ΔΙΑΚΟΠΗ, δεν ελέγχθηκε'
+          : strokeActive ? 'δεν ολοκληρώθηκε' : 'σήκωμα χωρίς ενεργή γραφή';
+      window.__GRAFO__.lifts.push(entry);
+      readout.textContent = `${window.__GRAFO__.lifts.length}. ${entry.event} · ` + (entry.coverage
+        ? `κάλυψη ${entry.coverage.join('/')}% (θέλει ${entry.need}) · σήκωμα ${entry.liftPx}px (έως ${entry.liftMaxPx}) · διαδρομή ${entry.travel} (θέλει 0.72) · εκτός ${entry.offShape}/${entry.offShapeMax} · `
+        : '') + entry.outcome;
+    };
+    // Αλλαγή μεγέθους της επιφάνειας την ώρα που γράφει: κόβει την πινελιά χωρίς γεγονός δείκτη.
+    const interrupt = session._interruptStroke.bind(session);
+    session._interruptStroke = (preserveTouch) => {
+      if (session.pencil && preserveTouch) {
+        window.__GRAFO__.lifts.push({ event: 'resize', wasWriting: true, completed: session.completed, outcome: 'ΔΙΑΚΟΠΗ από αλλαγή μεγέθους, δεν ελέγχθηκε', surface: [session.surface.w, session.surface.h] });
+        readout.textContent = `${window.__GRAFO__.lifts.length}. ΔΙΑΚΟΠΗ από αλλαγή μεγέθους της επιφάνειας (${session.surface.w}×${session.surface.h}), δεν ελέγχθηκε`;
+      }
+      return interrupt(preserveTouch);
+    };
+    for (const type of ['pointerup', 'pointercancel', 'lostpointercapture', 'pointerleave']) {
+      document.addEventListener(type, before, true);   // πριν από τον χειρισμό της εφαρμογής
+      paper.addEventListener(type, after);              // μετά από αυτόν
+    }
   }
 
   // ── Service worker (offline PWA) ─────────────────────────────────────────────
