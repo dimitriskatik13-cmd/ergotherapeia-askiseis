@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-10-02T18:53:01+00:00",
-  "status": "review-fixes-and-tail-fix-committed-locally-not-pushed-awaiting-device-user-review",
-  "public_deployment": false,
+  "updated_at": "2026-10-06T15:04:59+00:00",
+  "status": "published-v28-827e41e-verified",
+  "public_deployment": true,
   "baseline_commit": "11b5d8e3cf29ed7aa2c8cb7c17100085586351ee",
   "backup_sha256": "e55c391fbc1677fc48b6838461375ae87a6912603ecdbf1af6604a82cbaa65d4",
   "baseline_checks": {
@@ -13,7 +13,7 @@
   "direction_cases": 486,
   "physical_pencil_tested": false,
   "local_review_url": "http://localhost:8797/?char=%CE%B1&case=lower",
-  "local_revision": "20261002-review-fixes",
+  "local_revision": "20261006-v28",
   "r1_backup_sha256": "95cdf606059297004408b3ab66393db69382875010b748a8d20815afafc62018",
   "r1_baseline_checks": {
     "lower.js": true,
@@ -122,7 +122,7 @@
   "public_url": "https://dimitriskatik13-cmd.github.io/ergotherapeia-askiseis/grafo-grammata/",
   "public_refresh_url": "https://dimitriskatik13-cmd.github.io/ergotherapeia-askiseis/grafo-grammata/",
   "public_files_sha256_matched": 91,
-  "publication_receipt": "../../../testing/grafo-publication-v27/RECEIPT.json",
+  "publication_receipt": "../../../testing/grafo-publication-v28/RECEIPT.json",
   "legacy_phoneme_mp3_retained": 21,
   "visible_version": false,
   "latest_changed_public_files_sha256_matched": 3,
