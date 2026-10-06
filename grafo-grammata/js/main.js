@@ -8,6 +8,7 @@ import { Session } from './session.js';
 import { buildSettings } from './ui/settings.js';
 import { buildApproval } from './ui/approval.js';
 import { buildPicker } from './ui/picker.js';
+import { buildUpdateNote, watchUpdates } from './updates.js';
 import { el, clear } from './ui/dom.js';
 import { lettersByCase, findLetter } from './letters/index.js';
 
@@ -96,7 +97,9 @@ function bootstrap() {
     startBtn,
   ]);
   const activity = el('div', {class:'activity-screen',id:'activity-screen'}, [toolbar,stage]);
-  app.append(backdrop,home,activity);
+  // Νέα έκδοση: ένα κουμπί ξαναφορτώνει τη σελίδα, χωρίς αριθμό έκδοσης.
+  const updateNote = buildUpdateNote(() => location.reload());
+  app.append(backdrop,updateNote,home,activity);
 
 
   // ── Σύνδεση engine ───────────────────────────────────────────────────────────
@@ -344,12 +347,9 @@ function bootstrap() {
     }
   }
 
-  // ── Service worker (offline PWA) ─────────────────────────────────────────────
-  if ('serviceWorker' in navigator && !['localhost', '127.0.0.1', '[::1]'].includes(location.hostname)) {
-    window.addEventListener('load', () => {
-      navigator.serviceWorker.register('sw.js').catch(() => {});
-    });
-  }
+  // ── Service worker (offline PWA) και μήνυμα νέας έκδοσης ─────────────────────
+  watchUpdates(updateNote, { serviceWorker: navigator.serviceWorker, hostname: location.hostname });
+  if (window.__GRAFO__) window.__GRAFO__.updateNote = updateNote;
 }
 
 if (document.readyState === 'loading') {

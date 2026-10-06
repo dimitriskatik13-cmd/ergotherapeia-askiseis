@@ -10,7 +10,7 @@ test('every offline shell asset exists and cache name is newer than production v
  assert.notEqual(vm.runInContext('CACHE',context),'synoida-grafo-v19');
 });
 test('activation deletes only older caches of this app',async()=>{
- const removed=[];const {events}=load({keys:async()=>['synoida-grafo-v19','synoida-grafo-v20-rc1','synoida-grafo-v20-rc2','synoida-grafo-v20-rc3','synoida-grafo-v20-rc4','synoida-grafo-v20-rc5','synoida-grafo-v20','synoida-grafo-v21','synoida-grafo-v22','synoida-grafo-v23','synoida-grafo-v24','synoida-grafo-v25','synoida-grafo-v26','synoida-grafo-v27','synoida-grafo-v28','synoida-other-v3','unrelated'],delete:async k=>removed.push(k)});
+ const removed=[];const {events}=load({keys:async()=>['synoida-grafo-v19','synoida-grafo-v20-rc1','synoida-grafo-v20-rc2','synoida-grafo-v20-rc3','synoida-grafo-v20-rc4','synoida-grafo-v20-rc5','synoida-grafo-v20','synoida-grafo-v21','synoida-grafo-v22','synoida-grafo-v23','synoida-grafo-v24','synoida-grafo-v25','synoida-grafo-v26','synoida-grafo-v27','synoida-grafo-v28','synoida-grafo-v29','synoida-other-v3','unrelated'],delete:async k=>removed.push(k)});
  let p;events.activate({waitUntil:promise=>p=promise});await p;
- assert.deepEqual(removed,['synoida-grafo-v19','synoida-grafo-v20-rc1','synoida-grafo-v20-rc2','synoida-grafo-v20-rc3','synoida-grafo-v20-rc4','synoida-grafo-v20-rc5','synoida-grafo-v20','synoida-grafo-v21','synoida-grafo-v22','synoida-grafo-v23','synoida-grafo-v24','synoida-grafo-v25','synoida-grafo-v26','synoida-grafo-v27']);
+ assert.deepEqual(removed,['synoida-grafo-v19','synoida-grafo-v20-rc1','synoida-grafo-v20-rc2','synoida-grafo-v20-rc3','synoida-grafo-v20-rc4','synoida-grafo-v20-rc5','synoida-grafo-v20','synoida-grafo-v21','synoida-grafo-v22','synoida-grafo-v23','synoida-grafo-v24','synoida-grafo-v25','synoida-grafo-v26','synoida-grafo-v27','synoida-grafo-v28']);
 });
